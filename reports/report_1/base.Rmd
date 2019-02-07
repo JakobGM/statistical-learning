@@ -30,6 +30,19 @@ summary(modelA)
 
 **Q1:** 
 
+The equation for the fitted model is
+
+$$
+\log(Y_{\text{FEV}})
+= f(x) + \epsilon =
+\beta_0 +
+\beta_{\text{age}}x_{\text{age}} +
+\beta_{\text{height}}x_{\text{height}} +
+\beta_{\text{male}}x_{\text{male}} +
+\beta_{\text{smoke}}x_{\text{smoke}} +
+\epsilon
+$$
+
 **Q2:** 
     
 * `Estimate` - in particular interpretation of `Intercept`
@@ -43,7 +56,7 @@ summary(modelA)
 
 ```{r,eval=TRUE}
 library(ggplot2)
-# residuls vs fitted
+# Residuals vs fitted
 ggplot(modelA, aes(.fitted, .stdresid)) +
   geom_point(pch = 21) +
   geom_hline(yintercept = 0, linetype = "dashed") +
