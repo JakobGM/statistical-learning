@@ -168,6 +168,14 @@ The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of fre
 
 **Q3:** 
 
+The proportion of variability explained by `modelA` can be found by calculating the multiple R-squared statistic, given by
+
+$$
+R^2 := \frac{\mathrm{TSS} - \mathrm{RSS}}{\mathrm{TSS}}
+= 1 - \frac{RSS}{TSS} \in [0, 1]
+$$
+In our case, this value is $\approx 80.95\%$.
+
 **Q4:**
 
 ```{r,eval=TRUE}
