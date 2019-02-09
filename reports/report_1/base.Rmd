@@ -237,9 +237,22 @@ Here, the "Anderson-Darling normality test" is performed on the *studentized res
 
 **Q5:** 
 
+We now fit a new model, `modelB`, identical to `modelA` except for not using a *logarithmic* transformation for `FEV`.
+
 ```{r,eval=TRUE}
-# here you write your code
+modelB <- lm(FEV ~ Age + Htcm + Gender + Smoke, data=lungcap)
+summary(modelB)
 ```
+
+Since we have the exact same covariates, we can assess the two models by comparing their $R^2$ statistics. Since $R_B^2 < R_A^2$, `modelA` is to be preferred if explanatory power is important.
+
+Arguably, we should still choose `modelB` if it satisfies the error term normality condition, since this is an important assumption of the linear regression model.
+
+```{r}
+ad.test(rstudent(modelB))
+```
+
+We still can't conclude that error normality is definitely satisfied here, so we still choose `modelA` over `modelB`.
 
 **Q6:** 
 
