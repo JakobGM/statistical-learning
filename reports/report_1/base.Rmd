@@ -64,7 +64,7 @@ interceptFEV <- exp(beta["(Intercept)"])
 interceptFEV
 ```
 
-Such an imaginary induvidual is predicted to have a `FEV` of $\approx 0.14$ litres.
+Such an imaginary individual is predicted to have a `FEV` of $\approx 0.14$ litres.
 Now, in order to explain the remaining estimates, assume one of the covariates, $x_j$, to change to $x_j + 1$.
 How does the individual prediction change from $\hat{Y}_{\text{before}}$ to $\hat{Y}_{\text{after}}$?
 
@@ -178,6 +178,16 @@ In our case, this value is $\approx 80.95\%$.
 
 **Q4:**
 
+
+Here we use \textit{standardized residual plots} in order to check our model assumptions.
+One of our assumptions is
+
+$$
+\epsilon \sim \mathrm{N}_n(0, \sigma^2 I).
+$$
+
+With other words, the error terms are identically, and independently normally distributed with zero expected value. We can use the model resiuduals as estimators for the error terms, and check these assumptions. First,
+
 ```{r,eval=TRUE}
 library(ggplot2)
 # Residuals vs fitted
@@ -191,7 +201,11 @@ ggplot(modelA, aes(.fitted, .stdresid)) +
     title = "Fitted values vs. Standardized residuals",
     subtitle = deparse(modelA$call)
   )
+```
 
+Here we expect the standardized residuals to be symmetrically distributed across the $x$-axis (zero expected), and no discernible magnitude trend along the $x$-axis. The latter requirement follows from the independence between the $(Y_i, x_i)$ and $\epsilon_i$. Both requirements are satisfies, so no issues so far. Next,
+
+```{r}
 # qq-plot of residuals
 ggplot(modelA, aes(sample = .stdresid)) +
   stat_qq(pch = 19) + 
@@ -206,11 +220,20 @@ ggplot(modelA, aes(sample = .stdresid)) +
     title = "Normal Q-Q",
     subtitle = deparse(modelA$call)
   )
+```
 
+Here we plot a normal Q-Q plot for the model residuals. Ideally, we would like to see all points lying perfectly along a line going through the origin.
+In this case, we have some deviation from this straight line at the tails. This indicates a somewhat heavy left tail and light right tail, but it is still within acceptable limits. No reason to conclude non-normality of error terms.
+
+Finally,
+
+```{r}
 # normality test
 library(nortest) 
 ad.test(rstudent(modelA))
 ```
+
+Here, the "Anderson-Darling normality test" is performed on the *studentized residuals*. Due to a large value for A, we must reject the null-hypothesis of residual normality. The conclusions based on the plots above are therefore apparently wrong according to this test.
 
 **Q5:** 
 
