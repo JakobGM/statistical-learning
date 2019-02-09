@@ -115,14 +115,30 @@ where $c_jj$ is the j'th diagonal entry of the matrix $(X^T X)^{-1}$.
 For instance, $\beta_{\mathrm{age}}$ is estimated to be normally distributed with standard error
 
 ```{r}
-modelAEstimates <- as_tibble(summary(modelA)$coefficients)
+modelASummary <- summary(modelA)
+modelAEstimates <- as_tibble(modelASummary$coefficients)
 modelAEstimates$`Std. Error`[2]
 ```
 
 
 #### `Residual standard error`
 
-(answer)
+The residual standard error (RSS) for our model is
+
+```{r}
+modelASummary$sigma
+```
+
+and is found by summing the square difference between the observed values and the model predictions, as follows
+
+$$
+\mathrm{RSS} =
+\sum_{i = 1}^{n} e_i^2 =
+\sum_{i = 1}^{n} (Y_i - \hat{Y_i})^2 =
+\sum_{i = 1}^{n} (Y_i - x_i^T \hat{\beta})^2,
+$$
+
+and can be thought of as a summary of how much the model prediction "misses" the input data.
 
 #### `F-statistic`
 
