@@ -90,7 +90,35 @@ Here we see that an individual which smokes is expected to have $\approx 95.5\%$
 
 #### `Std.Error`
 
-(answer)
+The `Std.Error` column shows the model estimate of the standard error, $\mathrm{SE}({\beta_i})$.
+In order to calculate these estimates, we need the notion of \textit{residuals}, defined by
+
+$$
+e_i := Y_i - \hat{Y}_i = Y_i - x_i^T \hat{\beta},
+$$
+
+i.e. the difference between the model predictions and the actually observed values for the input data set.
+The population distribution variance parameter can now be estimated by
+
+$$
+\hat{\sigma}^2 = \frac{\sum_{i = 1}^n e_i^2}{n - p - 1} = \frac{\text{RSS}}{n - p - 1},
+$$
+
+where RSS is the residual sum of squares.
+The estimation of the standard error of the parameter estimation for $\beta_j$ can now be expressed as 
+
+$$
+\hat{\mathrm{SE}}(\hat{\beta}_i) = \sqrt{[(X^TX)^{-1}]_{[i,i]}} \hat{\sigma} := \sqrt{c_{jj}} \hat{\sigma},
+$$
+
+where $c_jj$ is the j'th diagonal entry of the matrix $(X^T X)^{-1}$.
+For instance, $\beta_{\mathrm{age}}$ is estimated to be normally distributed with standard error
+
+```{r}
+modelAEstimates <- as_tibble(summary(modelA)$coefficients)
+modelAEstimates$`Std. Error`[2]
+```
+
 
 #### `Residual standard error`
 
