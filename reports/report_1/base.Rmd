@@ -142,7 +142,29 @@ and can be thought of as a summary of how much the model prediction "misses" the
 
 #### `F-statistic`
 
-(answer)
+The `F-statistic` is a test statistic for the following hypothesis test
+
+$$
+\mathrm{H_0}: \beta = \vec{0} \\
+\text{ vs. } \\
+\mathrm{H_1}: \beta_j \neq 0, \text{for at least one } j.
+$$
+
+It tests if at least one of the model covariates have explanatory power. The test statistic is constructed as follows
+
+$$
+F = \frac{(\mathrm{TSS} - \mathrm{RSS}) / p}{\mathrm{RSS} / (n - p - 1)}
+\sim F_{p, n - p - 1},
+$$
+
+where
+
+$$
+\mathrm{TSS} := \sum_{i = 1}^n (y_i - \bar{y})^2 \\
+\bar{y} := \frac{1}{n} \sum_{i = 1}^n y_i.
+$$
+
+The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of freedom, in our case $4$ and $649$ respectively. In our case, this test results in a $p$-value of less than $2.2 \cdot 10^{-16}$, and we can relatively confidently conclude that the regression is significant.
 
 **Q3:** 
 
