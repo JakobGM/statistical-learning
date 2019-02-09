@@ -34,7 +34,9 @@ The equation for the fitted model is
 
 $$
 \log(Y_{\text{FEV}})
-= f(x) + \epsilon =
+= f(x) + \epsilon
+= x^T \beta + \epsilon
+=
 \beta_0 +
 \beta_{\text{age}}x_{\text{age}} +
 \beta_{\text{height}}x_{\text{height}} +
@@ -45,10 +47,58 @@ $$
 
 **Q2:** 
     
-* `Estimate` - in particular interpretation of `Intercept`
-* `Std.Error`
-* `Residual standard error`
-* `F-statistic`
+#### `Estimate`
+
+The `Estimate` column represents the entries in the $\hat{\beta}$ vector of length 5, the model *estimation* for $\beta$.
+Remember that the model is fitted with a *logarithmic* FEV response, so the model prediction of an induvidual $x$ becomes
+
+$$
+\hat{Y} = e^{x^T \hat{\beta}}.
+$$
+
+The `(Intercept)` estimate represents a non-smoking female individual of age 0 and height 0, which is nonsensical.
+
+```{r}
+beta <- coefficients(modelA)
+interceptFEV <- exp(beta["(Intercept)"])
+interceptFEV
+```
+
+Such an imaginary induvidual is predicted to have a `FEV` of $\approx 0.14$ litres.
+Now, in order to explain the remaining estimates, assume one of the covariates, $x_j$, to change to $x_j + 1$.
+How does the individual prediction change from $\hat{Y}_{\text{before}}$ to $\hat{Y}_{\text{after}}$?
+
+$$
+\hat{Y}_{after}
+= e^{x^T \beta}
+= e^{... + (x_j + 1) \beta_j + ...}
+= e^{\beta_j} e^{x^T \beta}
+= e^{\beta_j} \hat{Y}_{before}
+$$
+
+The exponential of the estimates represents the *multiplicative change* of the model prediction as the respective covariate changes.
+In our case, these multiplicative effects are
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+enframe(exp(beta)) %>% kable()
+```
+
+Here we see that an individual which smokes is expected to have $\approx 95.5\%$ of the `FEV` of a non-smoking individual, everything else being equal. Likewise, for every additional year of age, an individual is expected to increase their `FEV` by $\approx 2.7\%$.
+
+
+#### `Std.Error`
+
+(answer)
+
+#### `Residual standard error`
+
+(answer)
+
+#### `F-statistic`
+
+(answer)
 
 **Q3:** 
 
