@@ -317,9 +317,58 @@ since we can say with 95% confidence that $\beta_{\mathrm{age}}$ is nonzero.
 
 **Q8:**
 
+We now want to make a model prediction for a 16 year old non-smoking male of height 170 centimeters, $x_0$.
+
+First we want to predict a value for `log(FEV)` by calculating
+
+$$
+\hat{\log({\mathrm{FEV}})} = x_0^T \hat{\beta}
+$$
+This can be done with the R-function `predict()` like this 
+
 ```{r,eval=TRUE}
 new = data.frame(Age=16, Htcm=170, Gender="M", Smoke=0)
+logPrediction <- as_tibble(
+  predict(
+    modelA,
+    newdata = new,
+    interval = "predict",
+    type = "response",
+    level = 0.95
+  )
+) %>%
+  rename(
+    lower = lwr,
+    upper = upr
+  )
+print(logPrediction$fit)
 ```
+
+Our best guess, based on `modelA`, for `log(FEV)` is thus $\approx 1.33$.
+
+We can also construct a confidence interval for this predicted logarithmic value by using the following formula (given without proof)
+
+$$
+[{\bf x}_0^T \hat{\beta}-t_{\alpha/2,n-p-1}\hat{\sigma}\sqrt{1+{\bf x}_0^T({\bf X}^T{\bf X})^{-1}{\bf x}_0},~{\bf x}_0^T \hat{\beta}+t_{\alpha/2,n-p-1}\hat{\sigma}\sqrt{1+{\bf x}_0^T({\bf X}^T{\bf X})^{-1}{\bf x}_0}],
+$$.
+
+and exponentially transform the interval in order to get a 95% prediction interval for `FEV`.
+We can use `predict()` for this purpose as well
+
+```{r}
+logInterval <- logPrediction[c("lower", "upper")]
+FEVInterval <- exp(logInterval)
+FEVInterval %>% kable()
+```
+
+Our 95% prediction interval is $[2.82, 5.01]$, which is a quite wide interval.
+If we compare this interval to our `FEV` observations
+
+```{r}
+summary(lungcap$FEV)
+```
+
+the most useful thing we can conclude is that the individual likely has an above average `FEV`.
 
 # Problem 2: Classification 
 
