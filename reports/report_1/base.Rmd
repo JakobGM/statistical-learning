@@ -422,10 +422,61 @@ $$
 
 **Q10:** 
 
+We now calculate the error rates of the training and test sets for $K = 1, 2, ..., 30$ and plot these results.
+
 ```{r,eval=TRUE}
-# here you write your code
+dataset <- as_tibble(Mdf)
+train <- dataset %>% filter(istest == "0") %>% select(x1, x2)
+test <- dataset %>% filter(istest == "1") %>% select(x1, x2)
+
+trainAnswers <- dataset %>% filter(istest == "0") %>% pull(y)
+testAnswers <- dataset %>% filter(istest == "1") %>% pull(y)
+
+train.e <- vector()
+test.e <- vector()
+
+knnErrorRates <- function(train, test, trainAnswers, testAnswers) {
+  errorRates <- vector()
+  for (k in 1:30) {
+    testPredictions <- class::knn(
+      train = train,
+      test = test,
+      cl = trainAnswers,
+      k = k
+    )
+    errorRates <- append(
+      errorRates,
+      mean(testPredictions != testAnswers)
+    )
+  }
+  return(errorRates)
+}
+test.e <- knnErrorRates(
+  train = train,
+  test = test,
+  trainAnswers = trainAnswers,
+  testAnswers = testAnswers
+)
+train.e <- knnErrorRates(
+  train = train,
+  test = train,
+  trainAnswers = trainAnswers,
+  testAnswers = trainAnswers
+)
+result <- tibble(
+  K = 1:30,
+  testError = test.e,
+  trainError = train.e
+)
+
+result %>% ggplot(aes(x = K)) +
+  geom_line(aes(y = testError, col = "Test set")) +
+  geom_line(aes(y = trainError, col = "Training set")) +
+  ylab("Error rate")
 ```
 
+As expected, the training set has the lowest error rate for $K = 1$. The reason for the error not being
+exactly zero at $K = 1$ is due to duplicate $x$ entries.
 
 ```{r, eval=FALSE}
 set.seed(0)
