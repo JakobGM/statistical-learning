@@ -381,12 +381,12 @@ raw = read.csv("https://www.math.ntnu.no/emner/TMA4268/2019v/data/tennis.csv")
 M = na.omit(
   data.frame(
     y = as.factor(raw$Result),
-    x1 = raw$ACE.1-raw$UFE.1-raw$DBF.1,
-    x2 = raw$ACE.2-raw$UFE.2-raw$DBF.2
+    x1 = raw$ACE.1 - raw$UFE.1 - raw$DBF.1,
+    x2 = raw$ACE.2 - raw$UFE.2 - raw$DBF.2
   )
 )
 set.seed(4268) # for reproducibility
-tr <- sample.int(nrow(M), nrow(M)/2)
+tr <- sample.int(nrow(M), nrow(M) / 2)
 trte <- rep(1, nrow(M))
 trte[tr] <- 0
 Mdf <- data.frame(M, "istest" = as.factor(trte))
@@ -394,6 +394,31 @@ Mdf <- data.frame(M, "istest" = as.factor(trte))
 
 **Q9:** 
 
+Define $\mathcal{N}_x$ to be the set of the $K$ closest points to the point $x = (x_1, x_2)$.
+The KNN istimator $\hat{y}(x) \in \{0, 1\}$ is determined by taking a "majority vote" of
+its $N$ closest neighbors.
+The KNN estimate of the posterior class probability becomes
+
+$$
+\hat{P}(Y = y | X = x)
+=
+\frac{1}{K} \sum_{i \in \mathcal{N_x}} I(y_i = y)
+=
+\begin{cases}
+  \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,&\text{if } &y = 1 \\
+  1 - \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,&\text{if } &y = 0
+\end{cases}
+$$
+
+And the estimator can bayes classifier can be used to construct the estimator $\hat{y}(x)$
+
+$$
+\hat{y}(x) = 
+\begin{cases} 
+  1, ~~~~~\text{if } \hat{P}(Y = 1 | X = x) \geq 0.5 \\
+  0, ~~~~~\text{otherwise}
+\end{cases}
+$$
 
 **Q10:** 
 
