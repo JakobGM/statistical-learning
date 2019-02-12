@@ -20,7 +20,7 @@ knitr::opts_chunk$set(warning=FALSE)
 ```{r,echo=TRUE,eval=TRUE}
 library(GLMsData)
 data("lungcap")
-lungcap$Htcm <- lungcap$Ht*2.54
+lungcap$Htcm <- lungcap$Ht * 2.54
 modelA <- lm(
   log(FEV) ~ Age + Htcm + Gender + Smoke,
   data=lungcap
@@ -268,6 +268,7 @@ $$
 $$
 p\text{-value} = P(T_{\mathrm{age}} > t_{\mathrm{age}})
 $$
+
 ```{r,eval=TRUE}
 n <- nobs(modelA)
 betaAge <- beta["Age"]
@@ -283,7 +284,8 @@ With a significance level of 5%, the critical value (which gives the cut-off) ca
 with our $t$-statistic.
 
 ```{r}
-criticalValue <- qt(p = 0.025, df = n - 2, lower.tail = FALSE)
+alpha <- 0.05
+criticalValue <- qt(p = alpha / 2, df = n - 2, lower.tail = FALSE)
 print(list(tStatistic = tTestStatistic, criticalValue = criticalValue))
 ```
 
@@ -291,10 +293,27 @@ We can reject the null-hypothesis and conclude that $\beta_{\mathrm{age}} \neq 0
 
 **Q7:** 
 
+$$
+P(-t_{\alpha / 2, n - 2} < T_{\mathrm{age}} < t_{\alpha / 2, n - 2}) = 1 - \alpha \\
+\implies
+P(-t_{\alpha / 2, n - 2} < \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})} < t_{\alpha / 2, n - 2}) = 1 - \alpha \\
+\implies
+P(\hat{\beta}_{\mathrm{age}} - t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}}) < \beta_{\mathrm{age}} < \hat{\beta}_{\mathrm{age}} + t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})) = 1 - \alpha
+$$
+
+So we must find the interval $\hat{\beta}_{\mathrm{age}} \pm t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})$.
+
 ```{r,eval=TRUE}
-# here you write your code
+alpha <- 0.05
+radius <- qt(p = alpha / 2, df = n - 2, lower.tail = FALSE) * betaSE
+confidenceInterval <- tibble(lower = betaAge - radius, upper = betaAge + radius)
+confidenceInterval %>% kable()
 ```
 
+Notice that the 95% confidence interval for $\beta_{\mathrm{age}}$ is entirely positive.
+We can therefore relatively conclude that `age` has a positive effect on `FEV`, as the multiplicative effect becomes greater than one. This is really useful.
+This is positive 95% interval is also closely related to the fact that we rejected the null-hypothesis at a 5% $p$-value cut-off in the previous task,
+since we can say with 95% confidence that $\beta_{\mathrm{age}}$ is nonzero.
 
 **Q8:**
 
