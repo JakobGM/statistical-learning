@@ -256,9 +256,38 @@ We still can't conclude that error normality is definitely satisfied here, so we
 
 **Q6:** 
 
+$$
+\mathrm{H_0}: \beta_{\mathrm{age}} = 0 \\
+\text{ vs. } \\
+\mathrm{H_1}: \beta_{\mathrm{age}} \neq 0
+$$
+
+$$
+T_{\mathrm{age}} = \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\sqrt{\hat{\mathrm{Var}}(\hat{\beta}_{\mathrm{age}})}} \sim t_{n - 2}
+$$
+$$
+p\text{-value} = P(T_{\mathrm{age}} > t_{\mathrm{age}})
+$$
 ```{r,eval=TRUE}
-# here you write your code if you have any
+n <- nobs(modelA)
+betaAge <- beta["Age"]
+betaSE <- modelAEstimates$`Std. Error`[2]
+tTestStatistic <- betaAge / betaSE
+pValue <- 2 * pt(q = tTestStatistic, df = n - 2, lower.tail = FALSE)
+pValue
 ```
+
+The $p$-value is $\approx 7.1 \cdot 10^{-12}$, which coincides with the model summary output from earlier.
+
+With a significance level of 5%, the critical value (which gives the cut-off) can be compared
+with our $t$-statistic.
+
+```{r}
+criticalValue <- qt(p = 0.025, df = n - 2, lower.tail = FALSE)
+print(list(tStatistic = tTestStatistic, criticalValue = criticalValue))
+```
+
+We can reject the null-hypothesis and conclude that $\beta_{\mathrm{age}} \neq 0$.
 
 **Q7:** 
 
