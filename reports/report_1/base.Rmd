@@ -539,6 +539,8 @@ The bias is low for $K = 1$ because the model will be very close to the training
 
 **Q13:** 
 
+A different strategy will now be used to choose $K$.
+
 ```{r,eval=FALSE}
 k <- tail(which(cv.e < cv.e[k.min] + cv.se[k.min]), 1)
 size <- 100
@@ -557,6 +559,20 @@ legend("topleft", c("Player 1 wins", "Player 2 wins"),
 box()
 ```
 
+The line of interest is
+
+```{r,eval=FALSE}
+k <- tail(which(cv.e < cv.e[k.min] + cv.se[k.min]), 1)
+```
+
+Instead of choosing the $K$ that results in the smallest CV error rate, $\hat{\mathrm{K}} := \mathrm{argmin}~\mathrm{CV}(\mathrm{K})$,
+we instead choose the greatest $K$ which is within one standard deviation of $\hat{\mathrm{K}}$. More exactly,
+
+$$
+\mathrm{K} = \underset{\mathrm{K^*}}{\mathrm{max}} ~ \{K^* ~ | ~ \mathrm{CV}(\mathrm{K^*}) \leq \mathrm{CV}(\hat{\mathrm{K}}) + \mathrm{SE}(\hat{\mathrm{K}})\}
+$$
+
+This way, we are able to simplify our model within acceptable bounds from the minimal error.
 
 **Q14:** 
 
