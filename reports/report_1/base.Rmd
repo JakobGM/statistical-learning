@@ -478,7 +478,7 @@ result %>% ggplot(aes(x = K)) +
 As expected, the training set has the lowest error rate for $K = 1$. The reason for the error not being
 exactly zero at $K = 1$ is due to duplicate $x$ entries.
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 set.seed(0)
 ks <- 1:30 # Choose K from 1 to 30.
 idx <- createFolds(M[tr,1], k=5) # Divide the training data into 5 folds.
@@ -509,7 +509,7 @@ cv = sapply(
 
 **Q11:** 
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 cv.e <- colMeans(cv)
 cv.se <- apply(cv, 2, sd) / sqrt(5)
 k.min <- which.min(cv.e)
@@ -541,7 +541,7 @@ The bias is low for $K = 1$ because the model will be very close to the training
 
 A different strategy will now be used to choose $K$.
 
-```{r,eval=FALSE}
+```{r,eval = TRUE}
 k <- tail(which(cv.e < cv.e[k.min] + cv.se[k.min]), 1)
 size <- 100
 xnew <- apply(M[tr,-1], 2, function(X) seq(min(X), max(X), length.out = size))
@@ -574,22 +574,86 @@ $$
 
 This way, we are able to simplify our model within acceptable bounds from the minimal error.
 
-**Q14:** 
+**Q14:**
 
-```{r,eval=FALSE}
-K=# your choice from Q13
-  
-# knn with prob=TRUE outputs the probability of the winning class
-# therefore we have to do an extra step to get the probability of player 1 winning
+We now plot the receiver operating characteristics (ROC) curve.
+
+```{r,eval = TRUE}
+K <- tail(which(cv.e < cv.e[k.min] + cv.se[k.min]), 1)
+
 KNNclass <- class::knn(train = M[tr,-1], cl = M[tr,1], test = M[-tr,-1], k = K,prob=TRUE)
 KNNprobwinning <- attributes(KNNclass)$prob
 KNNprob <- ifelse(KNNclass == "0", 1-KNNprobwinning, KNNprobwinning)
-# now KNNprob has probability that player 1 wins, for all matches in the test set
 
 library(pROC)
-# now you use predictor=KNNprob and response=M[-tr,1] 
-# in your call to the function roc in the pROC library
+player1ROC <- roc(response = M[-tr, 1], predictor = KNNprob, legacy.axes = TRUE)
+ROC <- tibble(
+  sensitivity = rev(player1ROC$sensitivities),
+  specificity = rev(player1ROC$specificities)
+)
+
+# For stepribbon functionality
+library(ggalt)
+ROC %>% ggplot() +
+  geom_ribbon(
+    aes(
+      x = specificity,
+      ymin = 0,
+      ymax = sensitivity,
+      col = "AUC"
+    ),
+    fill = "red",
+    alpha = 0.2,
+    stat = "stepribbon"
+  ) +
+  geom_line(
+    data = tibble(x = c(1, 0), y = c(0, 1)),
+    aes(x = x, y = y, col = "Random guess"),
+    linetype = "dashed"
+  ) +
+  geom_step(
+    aes(x = specificity, y = sensitivity, col = "ROC")
+  ) +
+  labs(
+    title = "ROC curve",
+    caption = paste(
+      c("AUC: ", signif(player1ROC$auc, 3)),
+      collapse = " "
+    )
+  ) +
+  scale_x_reverse() +
+  coord_equal() +
+  ylab("sensitivity")
 ```
+
+This curve shows the relationship between the *specificity* and *sensitivity* of the model as the threshold probability goes from $0$ to $1$,
+defined as
+
+$$
+\text{sensitivity} := \frac{\text{Number of true positives}}{\text{Number of positives}} = \frac{\mathrm{TP}}{\mathrm{P}} \\
+\text{specificity} := \frac{\text{Number of true negatives}}{\text{Number of negatives}} = \frac{\mathrm{TN}}{\mathrm{N}}
+$$
+Thus, these extreme thresholds (probability cut-off) must therefore imply the following
+
+$$
+\text{threshold} \gets 0 \implies 
+\begin{cases}
+  \text{sensitivity} = 1 \\
+  \text{sensitivity} = 0
+\end{cases}
+\\
+\text{threshold} \gets 1 \implies 
+\begin{cases}
+  \text{sensitivity} = 0 \\
+  \text{sensitivity} = 1
+\end{cases}
+$$
+
+The $\mathrm{AUC} \in [0, 1]$ is the area under the $\mathrm{ROC}$ curve. The best case scenario is when the $\mathrm{ROC}$ curve "hugs" the
+upper left corner, resulting in $\mathrm{AUC} = 1$. In our case, we have $\mathrm{AUC} \approx 0.818$.
+
+Random guessing can be thought of as drawing samples $u \sim \mathcal{U}(0, 1)$ and comparing it to the threshold probability in order to make
+a prediction. Since $P(u < p) = p$, the resulting specificity-sensitivity graph becomes a straight line (on average), and the $\mathrm{AUC}$ becomes $0.5$.
 
 **Q15:**
 
@@ -601,6 +665,7 @@ library(pROC)
 # Problem 3: Bias-variance trade-off 
 
 Here you see how to write formulas with latex (needed below)
+
 $$
 \hat{\boldsymbol \beta}=({\bf X}^T{\bf X})^{-1}{\bf X}^T{\bf Y}
 $$
