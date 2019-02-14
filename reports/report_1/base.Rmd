@@ -517,6 +517,8 @@ k.min <- which.min(cv.e)
 
 **Q12:** 
 
+We now plot the misclassification errors.
+
 ```{r,eval=FALSE}
 library(colorspace)
 co <- rainbow_hcl(3)
@@ -530,6 +532,10 @@ lines(ks, test.e, type = "o", pch = 16, ylim = c(0.5, 0.7), col = co[1])
 legend("topright", legend = c("Test", "5-fold CV", "Training"), lty = 1,
        col = co)
 ```
+
+The bias of $\hat{y}(x)$ will increase with increasing $K$, but the variance will *decrease* with increasing $K$.
+The variance is high for $K = 1$ because only the nearest neighbours is used and noise will therefore affect the model quite a lot.
+The bias is low for $K = 1$ because the model will be very close to the training data.
 
 **Q13:** 
 
