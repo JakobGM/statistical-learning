@@ -510,9 +510,9 @@ cv = sapply(
 **Q11:** 
 
 ```{r, eval=FALSE}
-cv.e <- # fill in
-cv.se <- #fill in
-k.min <- # fill in
+cv.e <- colMeans(cv)
+cv.se <- apply(cv, 2, sd) / sqrt(5)
+k.min <- which.min(cv.e)
 ```
 
 **Q12:** 
