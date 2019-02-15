@@ -662,7 +662,8 @@ tb <- tibble(
   x1 = M$x1,
   x2 = M$x2,
   y = M$y,
-  yHat = as.integer(M$x1 > M$x2)
+  yHat = as.integer(M$x1 > M$x2),
+  istest = as.factor(trte)
 )
 p1WinsPoly <- tibble(
   x1 = c(-90, 13, 13),
@@ -687,8 +688,7 @@ tb %>% ggplot() +
     fill = "black"
   ) +
   geom_point(
-    aes(col = y, x = x1, y = x2),
-    shape = 1,
+    aes(col = y, x = x1, y = x2, shape = istest),
     size = 1
   ) +
   geom_abline(
@@ -710,6 +710,7 @@ tb %>% ggplot() +
     labels = "Decision Boundary",
     values = "dashed"
   ) +
+  scale_shape_manual(values = c(1, 2)) +
   scale_x_continuous(limits = c(-90, 13), expand = c(0, 0)) +
   scale_y_continuous(limits = c(-90, 13), expand = c(0, 0)) +
   theme(
@@ -721,6 +722,17 @@ tb %>% ggplot() +
   )
 ```
 
+```{r}
+train <- tb %>% slice(-tr)
+argmaxConfMatrix <- confusionMatrix(table(train$yHat, train$y))
+knnConfMatrix <- confusionMatrix(table(KNNclass, train$y))
+print(argmaxConfMatrix)
+print(knnConfMatrix)
+```
+
+These two predictors perform really similarly, since the 95% confidence interval for the accuracy is quite overlapping.
+The KNN predictor has better specificity, while the argmax predictor has better sensitivity. 
+We prefer the argmax predictor since it has better accuracy.
 
 # Problem 3: Bias-variance trade-off 
 
