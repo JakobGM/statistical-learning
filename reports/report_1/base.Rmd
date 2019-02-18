@@ -34,7 +34,8 @@ summary(modelA)
 The equation for the fitted model is
 
 $$
-\log(Y_{\text{FEV}})
+\log(\text{FEV})
+= Y
 = f(x) + \epsilon
 = x^T \beta + \epsilon
 =
@@ -51,10 +52,10 @@ $$
 #### `Estimate`
 
 The `Estimate` column represents the entries in the $\hat{\beta}$ vector of length 5, the model *estimation* for $\beta$.
-Remember that the model is fitted with a *logarithmic* FEV response, so the model prediction of an induvidual $x$ becomes
+Remember that the model is fitted with a *logarithmic* FEV response, so the model prediction of an induvidual $x$'s FEV becomes
 
 $$
-\hat{Y} = e^{x^T \hat{\beta}}.
+\text{FEV} = e^{\hat{Y}} = e^{x^T \hat{\beta}}.
 $$
 
 The `(Intercept)` estimate represents a non-smoking female individual of age 0 and height 0, which is nonsensical.
@@ -67,14 +68,14 @@ interceptFEV
 
 Such an imaginary individual is predicted to have a `FEV` of $\approx 0.14$ litres.
 Now, in order to explain the remaining estimates, assume one of the covariates, $x_j$, to change to $x_j + 1$.
-How does the individual prediction change from $\hat{Y}_{\text{before}}$ to $\hat{Y}_{\text{after}}$?
+How does the model's FEV prediction change from $\text{FEV}_{\text{before}}$ to $\text{FEV}_{\text{after}}$ in such a case?
 
 $$
-\hat{Y}_{after}
-= e^{x^T \beta}
-= e^{... + (x_j + 1) \beta_j + ...}
-= e^{\beta_j} e^{x^T \beta}
-= e^{\beta_j} \hat{Y}_{before}
+\text{FEV}_{after}
+= e^{x^T \hat\beta}
+= e^{... + (x_j + 1) \hat\beta_j + ...}
+= e^{\hat \beta_j} e^{x^T \hat \beta}
+= e^{\hat \beta_j} \text{FEV}_{before}
 $$
 
 The exponential of the estimates represents the *multiplicative change* of the model prediction as the respective covariate changes.
@@ -92,7 +93,7 @@ Here we see that an individual which smokes is expected to have $\approx 95.5\%$
 #### `Std.Error`
 
 The `Std.Error` column shows the model estimate of the standard error, $\mathrm{SE}({\beta_i})$.
-In order to calculate these estimates, we need the notion of \textit{residuals}, defined by
+In order to calculate these estimates, we need the notion of *residuals*, defined by
 
 $$
 e_i := Y_i - \hat{Y}_i = Y_i - x_i^T \hat{\beta},
@@ -112,7 +113,7 @@ $$
 \hat{\mathrm{SE}}(\hat{\beta}_i) = \sqrt{[(X^TX)^{-1}]_{[i,i]}} \hat{\sigma} := \sqrt{c_{jj}} \hat{\sigma},
 $$
 
-where $c_jj$ is the j'th diagonal entry of the matrix $(X^T X)^{-1}$.
+where $c_{jj}$ is the j'th diagonal entry of the matrix $(X^T X)^{-1}$.
 For instance, $\beta_{\mathrm{age}}$ is estimated to be normally distributed with standard error
 
 ```{r}
@@ -165,7 +166,7 @@ where
 \bar{y} := \frac{1}{n} \sum_{i = 1}^n y_i.
 \end{gather*}
 
-The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of freedom, in our case $4$ and $649$ respectively. In our case, this test results in a $p$-value of less than $2.2 \cdot 10^{-16}$, and we can relatively confidently conclude that the regression is significant.
+The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of freedom, in our case $4$ and $649$ respectively. This test results in a $p$-value of less than $2.2 \cdot 10^{-16}$, and we can relatively confidently conclude that the regression is significant.
 
 **Q3:** 
 
@@ -180,14 +181,14 @@ In our case, this value is $\approx 80.95\%$.
 **Q4:**
 
 
-Here we use \textit{standardized residual plots} in order to check our model assumptions.
+Here we use *standardized residual plots* in order to check our model assumptions.
 One of our assumptions is
 
 $$
 \epsilon \sim \mathrm{N}_n(0, \sigma^2 I).
 $$
 
-With other words, the error terms are identically, and independently normally distributed with zero expected value. We can use the model resiuduals as estimators for the error terms, and check these assumptions. First,
+With other words, the error terms are identically, and independently normally distributed with mean zero. We can use the model resiuduals as estimators for the error terms, and check these assumptions. First,
 
 ```{r,eval=TRUE}
 library(ggplot2)
@@ -204,7 +205,7 @@ ggplot(modelA, aes(.fitted, .stdresid)) +
   )
 ```
 
-Here we expect the standardized residuals to be symmetrically distributed across the $x$-axis (zero expected), and no discernible magnitude trend along the $x$-axis. The latter requirement follows from the independence between the $(Y_i, x_i)$ and $\epsilon_i$. Both requirements are satisfies, so no issues so far. Next,
+Here we expect the standardized residuals to be symmetrically distributed across the $x$-axis (zero expected), and no discernible magnitude trend along the $x$-axis. The latter requirement follows from the independence between the observational pairs $(Y_i, x_i)$ and the error terms $\epsilon_i$. Both requirements are satisfied, so no issues so far. Next,
 
 ```{r}
 # qq-plot of residuals
@@ -224,7 +225,7 @@ ggplot(modelA, aes(sample = .stdresid)) +
 ```
 
 Here we plot a normal Q-Q plot for the model residuals. Ideally, we would like to see all points lying perfectly along a line going through the origin.
-In this case, we have some deviation from this straight line at the tails. This indicates a somewhat heavy left tail and light right tail, but it is still within acceptable limits. No reason to conclude non-normality of error terms.
+In this case, we have some deviation from this straight line at the tails. This indicates a somewhat heavy left tail and light right tail, compared to the normal distribution.
 
 Finally,
 
@@ -257,18 +258,25 @@ We still can't conclude that error normality is definitely satisfied here, so we
 
 **Q6:** 
 
+We now want perform the following hypothesis test
+
 \begin{gather*}
 \mathrm{H_0}: \beta_{\mathrm{age}} = 0 \\
 \text{ vs. } \\
-\mathrm{H_1}: \beta_{\mathrm{age}} \neq 0
+\mathrm{H_1}: \beta_{\mathrm{age}} \neq 0.
 \end{gather*}
 
+In order to test this, define the following $t$-distributed test statistic
+
 $$
-T_{\mathrm{age}} = \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\sqrt{\hat{\mathrm{Var}}(\hat{\beta}_{\mathrm{age}})}} \sim t_{n - 2}
+T_{\mathrm{age}} = \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\sqrt{\hat{\mathrm{Var}}(\hat{\beta}_{\mathrm{age}})}} \sim t_{n - 2}.
 $$
+The $p$-value for the test is defined by
+
 $$
-p\text{-value} = P(T_{\mathrm{age}} > t_{\mathrm{age}})
+p\text{-value} := P(T_{\mathrm{age}} > t_{\mathrm{age}})
 $$
+We now calculate this value
 
 ```{r,eval=TRUE}
 n <- nobs(modelA)
@@ -287,12 +295,14 @@ with our $t$-statistic.
 ```{r}
 alpha <- 0.05
 criticalValue <- qt(p = alpha / 2, df = n - 2, lower.tail = FALSE)
-print(list(tStatistic = tTestStatistic, criticalValue = criticalValue))
+kable(tibble("t-statistic" = tTestStatistic, "critical value" = criticalValue))
 ```
 
 We can reject the null-hypothesis and conclude that $\beta_{\mathrm{age}} \neq 0$.
 
 **Q7:** 
+
+A $95\%$ confidence interval for $\beta_{\mathrm{age}}$ can be constructed with the same test statistic as above in the following way
 
 \begin{align*}
 P(-t_{\alpha / 2, n - 2} < T_{\mathrm{age}} < t_{\alpha / 2, n - 2}) &= 1 - \alpha \\
@@ -312,8 +322,8 @@ confidenceInterval %>% kable()
 ```
 
 Notice that the 95% confidence interval for $\beta_{\mathrm{age}}$ is entirely positive.
-We can therefore relatively conclude that `age` has a positive effect on `FEV`, as the multiplicative effect becomes greater than one. This is really useful.
-This is positive 95% interval is also closely related to the fact that we rejected the null-hypothesis at a 5% $p$-value cut-off in the previous task,
+We can therefore relatively confidently conclude that `age` has a positive effect on `FEV`, as the multiplicative effect becomes greater than one, which is really useful.
+This positive 95% interval (i.e. not containing $0$) is also closely related to the fact that we rejected the null-hypothesis at a 5% $p$-value cut-off in the previous task,
 since we can say with 95% confidence that $\beta_{\mathrm{age}}$ is nonzero.
 
 **Q8:**
