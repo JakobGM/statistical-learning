@@ -796,9 +796,41 @@ So, we have $\hat{f}(x_0) \sim N_1(x_0^T \beta,~\sigma^2 x_0^T (X^T X)^{-1} x_0)
 
 **Q18:** 
 
-$$\text{E}[(Y_0-\hat{f}({\bf x}_0))^2]=[\text{E}(\hat{f}({\bf x}_0)-f({\bf x}_0)]^2+\text{Var}(\hat{f}({\bf x}_0) ) + \text{Var}(\varepsilon)$$
+We will use that for a random variable, $Z$, we have $\mathrm{E}\left[Z^2\right] = \mathrm{Var}(Z) + \mathrm{E}[Z]^2$.
+Also, since $Y_0$ and $\hat{f}(x_0)$ are independent, then $\mathrm{E}[Y_0 \hat{f}(x_0)] = \mathrm{E}[Y_0] \mathrm{E}[\hat{f}(x_0)]$.
+
+$$
+\text{E}[(Y_0-\hat{f}({\bf x}_0))^2] \\
+= \mathrm{E}\left[ Y_0^2 + \hat{f}(x_0)^2 - 2 Y_0 \hat{f}(x_0) \right] \\
+= 
+  \mathrm{E}\left[ Y_0^2 \right]
+  + \mathrm{E}\left[ \hat{f}(x_0)^2 \right]
+  - \mathrm{E}\left[ 2 Y_0 \hat{f}(x_0) \right] \\
+= 
+  \mathrm{Var}(Y_0) + \mathrm{E}\left[ Y_0 \right]^2
+  + \mathrm{Var}\left(\hat{f}(x_0)\right) + \mathrm{E}\left[ \hat{f}(x_0) \right]^2
+  - 2 \cdot \mathrm{E}\left[ Y_0 \right] \mathrm{E} \left[ \hat{f}(x_0) \right] \\
+= 
+  \mathrm{Var}(Y_0) + f(x_0)^2
+  + \mathrm{Var}\left(\hat{f}(x_0)\right) + \mathrm{E}\left[ \hat{f}(x_0) \right]^2
+  - 2 \cdot f(x_0) \mathrm{E} \left[ \hat{f}(x_0) \right] \\
+= 
+  \mathrm{Var}(Y_0)
+  + \mathrm{Var}\left(\hat{f}(x_0)\right)
+  + \left( \mathrm{E}\left[\hat{f}(x_0)\right] - f(x_0) \right)^2 \\
+=
+  \sigma^2 I
+  + \sigma^2 x_0^T (X^T X)^{-1} x_0
+  + (x_0^T \beta - x_0^T \beta)^2 \\
+=
+  \sigma^2 I
+  + \sigma^2 x_0^T (X^T X)^{-1} x_0
+  + 0^2 \\
+= \text{Irreducible error} + \text{Variance} + \text{Bias}^2
+$$
 
 Ridge estimator:
+
 $$
 \widetilde{\boldsymbol \beta}=({\bf X}^T{\bf X}+\lambda {\bf I})^{-1}{\bf X}^T{\bf Y}
 $$
