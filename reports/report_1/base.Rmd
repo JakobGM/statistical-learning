@@ -261,11 +261,44 @@ Since we have the exact same covariates, we can assess the two models by compari
 
 Arguably, we should still choose `modelB` if it satisfies the error term normality condition, since this is an important assumption of the linear regression model.
 
+First, let's look at the residual plots, reusing the code from before
+
+```{r, show = FALSE, eval = TRUE}
+library(gridExtra)
+plot1 <- ggplot(modelB, aes(.fitted, .stdresid)) +
+  geom_point(pch = 21) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_smooth(se = FALSE, col = "red", size = 0.5, method = "loess") +
+  labs(
+    x = "Fitted values",
+    y = "Standardized residuals",
+    title = "Fitted values vs. Standardized residuals",
+    subtitle = deparse(modelB$call)
+  )
+plot2 <- ggplot(modelB, aes(sample = .stdresid)) +
+  stat_qq(pch = 19) + 
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    linetype = "dotted"
+  ) +
+  labs(
+    x = "Theoretical quantiles",
+    y = "Standardized residuals",
+    title = "Normal Q-Q",
+    subtitle = deparse(modelB$call)
+  )
+grid.arrange(plot1, plot2, ncol = 2)
+```
+
+These plots show a clear trend between fitted values and the standardized residuals, much more so than `modelA`,
+while the Q-Q plot indicates a too light-tailed distribution. Lastly, let's repeat the Anderson-Darling normality test for `modelB`
+
 ```{r}
 ad.test(rstudent(modelB))
 ```
 
-We still can't conclude that error normality is definitely satisfied here, so we still choose `modelA` over `modelB`.
+We can't conclude that error normality is satisfied here, so we still choose `modelA` over `modelB`.
 
 **Q6:** 
 
