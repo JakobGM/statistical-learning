@@ -861,6 +861,26 @@ So we end up with $\widetilde{\beta} \sim N_{p+1}\left((X^T X+\lambda I)^{-1} (X
 
 **Q20:** 
 
+Now we find the expected value of the estimator $\widetilde{f}(x_0) = x_0^T \widetilde{\beta}$.
+
+$$
+\mathrm{E}\left[\widetilde{f}(x_0) \right]
+= \mathrm{E}\left[x_0^T \widetilde{\beta} \right]
+= x_0^T \mathrm{E}\left[\widetilde{\beta} \right]
+= x_0^T (X^T X+\lambda I)^{-1} (X^T X) \beta
+$$
+
+And the variance.
+
+$$
+\mathrm{Var}\left(\widetilde{f}(x_0) \right)
+= \mathrm{Var}\left(x_0^T \widetilde{\beta} \right)
+= x_0^T \mathrm{Cov}\left( \widetilde{\beta} \right) x_0
+= \sigma^2 x_0^T (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1} x_0
+$$
+
+And therefore we have $\widetilde{f}(x_0) \sim N_1\left(x_0^T (X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 x_0^T (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1} x_0 \right)$.
+
 **Q21:** 
 $$\text{E}[(Y_0-\widetilde{f}({\bf x}_0))^2]=[\text{E}(\widetilde{f}({\bf x}_0)-f({\bf x}_0)]^2+\text{Var}(\widetilde{f}({\bf x}_0) ) + \text{Var}(\varepsilon)$$
 
