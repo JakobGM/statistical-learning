@@ -31,7 +31,7 @@ summary(modelA)
 
 **Q1:** 
 
-The equation for the fitted model is
+The underlying distributional assumption is
 
 $$
 \log(\text{FEV})
@@ -46,6 +46,9 @@ $$
 \beta_{\text{smoke}}x_{\text{smoke}} +
 \epsilon
 $$
+
+Where we assume $\epsilon \sim N_{n}(0, \sigma^2 I)$.
+The *fitted* model is $\hat{Y} = x^T \hat{\beta}$.
 
 **Q2:** 
     
@@ -73,12 +76,12 @@ How does the model's FEV prediction change from $\text{FEV}_{\text{before}}$ to 
 $$
 \text{FEV}_{after}
 = e^{x^T \hat\beta}
-= e^{... + (x_j + 1) \hat\beta_j + ...}
+= e^{\hat{\beta}_0 + x_1 \hat{\beta}_1 + ... + (x_j + 1) \hat\beta_j + ... \hat{\beta}_p x_p}
 = e^{\hat \beta_j} e^{x^T \hat \beta}
 = e^{\hat \beta_j} \text{FEV}_{before}
 $$
 
-The exponential of the estimates represents the *multiplicative change* of the model prediction as the respective covariate changes.
+The exponential of the coefficient estimates represents the *multiplicative change* of the model prediction as the respective covariate changes.
 In our case, these multiplicative effects are
 
 ```{r}
@@ -87,19 +90,19 @@ library(kableExtra)
 enframe(exp(beta)) %>% kable()
 ```
 
-Here we see that an individual which smokes is expected to have $\approx 95.5\%$ of the `FEV` of a non-smoking individual, everything else being equal. Likewise, for every additional year of age, an individual is expected to increase their `FEV` by $\approx 2.7\%$.
+Here we see that an individual which smokes is expected to have $\approx 95.5\%$ of the `FEV` of a non-smoking individual, everything else being equal. Likewise, for every additional year of age, an individual is expected to increase their `FEV` by $\approx 2.4\%$.
 
 
 #### `Std.Error`
 
-The `Std.Error` column shows the model estimate of the standard error, $\mathrm{SE}({\beta_i})$.
+The `Std.Error` column shows the model estimate of the standard error, $\mathrm{SE}({\beta_j})$.
 In order to calculate these estimates, we need the notion of *residuals*, defined by
 
 $$
 e_i := Y_i - \hat{Y}_i = Y_i - x_i^T \hat{\beta},
 $$
 
-i.e. the difference between the model predictions and the actually observed values for the input data set.
+i.e. the difference between the actually observed values and the model predictions for the training set.
 The population distribution variance parameter can now be estimated by
 
 $$
@@ -110,11 +113,13 @@ where RSS is the residual sum of squares.
 The estimation of the standard error of the parameter estimation for $\beta_j$ can now be expressed as 
 
 $$
-\hat{\mathrm{SE}}(\hat{\beta}_i) = \sqrt{[(X^TX)^{-1}]_{[i,i]}} \hat{\sigma} := \sqrt{c_{jj}} \hat{\sigma},
+\hat{\mathrm{SE}}(\hat{\beta}_i)
+= \sqrt{[(X^TX)^{-1}]_{[i,i]}} ~ \hat{\sigma}
+:= \sqrt{c_{jj}} ~ \hat{\sigma},
 $$
 
 where $c_{jj}$ is the j'th diagonal entry of the matrix $(X^T X)^{-1}$.
-For instance, $\beta_{\mathrm{age}}$ is estimated to be normally distributed with standard error
+For instance, under our model assumptions, $\beta_{\mathrm{age}}$ is estimated to be normally distributed with standard error
 
 ```{r}
 modelASummary <- summary(modelA)
@@ -137,10 +142,11 @@ $$
 \mathrm{RSS} =
 \sum_{i = 1}^{n} e_i^2 =
 \sum_{i = 1}^{n} (Y_i - \hat{Y_i})^2 =
-\sum_{i = 1}^{n} (Y_i - x_i^T \hat{\beta})^2,
+\sum_{i = 1}^{n} (Y_i - x_i^T \hat{\beta})^2 =
+(Y - X\hat{\beta})^T (Y - X\hat{\beta})
 $$
 
-and can be thought of as a summary of how much the model prediction "misses" the input data.
+and can be thought of as the variability that remains to be explained by the model.
 
 #### `F-statistic`
 
@@ -162,8 +168,7 @@ $$
 where
 
 \begin{gather*}
-\mathrm{TSS} := \sum_{i = 1}^n (y_i - \bar{y})^2 \\
-\bar{y} := \frac{1}{n} \sum_{i = 1}^n y_i.
+\mathrm{TSS} := \sum_{i = 1}^n (y_i - \bar{y})^2
 \end{gather*}
 
 The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of freedom, in our case $4$ and $649$ respectively. This test results in a $p$-value of less than $2.2 \cdot 10^{-16}$, and we can relatively confidently conclude that the regression is significant.
@@ -173,9 +178,11 @@ The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of fre
 The proportion of variability explained by `modelA` can be found by calculating the multiple R-squared statistic, given by
 
 $$
-R^2 := \frac{\mathrm{TSS} - \mathrm{RSS}}{\mathrm{TSS}}
-= 1 - \frac{RSS}{TSS} \in [0, 1]
+R^2 := \frac{\text{TSS} - \text{RSS}}{\text{TSS}}
+= 1 - \frac{\text{RSS}}{\text{TSS}} \in [0, 1]
 $$
+
+$\text{TSS} - \text{RSS}$ can be interpreted as the amount of variability explained by the model, while $\text{TSS}$ is the total variability in the training set.
 In our case, this value is $\approx 80.95\%$.
 
 **Q4:**
@@ -188,7 +195,9 @@ $$
 \epsilon \sim \mathrm{N}_n(0, \sigma^2 I).
 $$
 
-With other words, the error terms are identically, and independently normally distributed with mean zero. We can use the model resiuduals as estimators for the error terms, and check these assumptions. First,
+With other words, the error terms are identically, and independently normally distributed with mean zero.
+We can use the model standardized residuals as estimators for the error terms, and check these assumptions. First,
+
 
 ```{r,eval=TRUE}
 library(ggplot2)
@@ -205,7 +214,9 @@ ggplot(modelA, aes(.fitted, .stdresid)) +
   )
 ```
 
-Here we expect the standardized residuals to be symmetrically distributed across the $x$-axis (zero expected), and no discernible magnitude trend along the $x$-axis. The latter requirement follows from the independence between the observational pairs $(Y_i, x_i)$ and the error terms $\epsilon_i$. Both requirements are satisfied, so no issues so far. Next,
+Here we expect the standardized residuals to be symmetrically distributed across the $x$-axis (zero expected), and no discernible magnitude trend along the $x$-axis.
+The latter requirement follows from the independence between the observational pairs $(Y_i, x_i)$ and the error terms $\epsilon_i$.
+Both requirements seem to be satisfied, so no issues so far. Next,
 
 ```{r}
 # qq-plot of residuals
@@ -230,12 +241,12 @@ In this case, we have some deviation from this straight line at the tails. This 
 Finally,
 
 ```{r}
-# normality test
 library(nortest) 
 ad.test(rstudent(modelA))
 ```
 
-Here, the "Anderson-Darling normality test" is performed on the *studentized residuals*. Due to a large value for A, we must reject the null-hypothesis of residual normality. The conclusions based on the plots above are therefore apparently wrong according to this test.
+Here, the "Anderson-Darling normality test" is performed on the *studentized residuals*. Due to a large value for A, we must reject the null-hypothesis of residual normality.
+Since these results are not ideal, we should be somewhat careful while making inferences going forwards.
 
 **Q5:** 
 
