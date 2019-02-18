@@ -39,3 +39,4 @@ packrat/lib*/
 packrat/src/
 **/*.html
 **/*.tex
+reports/**/*.pdf
