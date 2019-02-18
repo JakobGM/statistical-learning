@@ -829,13 +829,35 @@ $$
 = \text{Irreducible error} + \text{Variance} + \text{Bias}^2
 $$
 
-Ridge estimator:
-
-$$
-\widetilde{\boldsymbol \beta}=({\bf X}^T{\bf X}+\lambda {\bf I})^{-1}{\bf X}^T{\bf Y}
-$$
 
 **Q19:** 
+
+We now look at the ridge estimator, $\widetilde{\beta}$,
+
+$$
+\widetilde{\beta} := (X^T X+\lambda I)^{-1} X^T Y,~~~\lambda \in [0, \infty]
+$$
+
+First, we calculate the expected value.
+
+$$
+\mathrm{E}\left[ \widetilde{\beta} \right]
+= \mathrm{E}\left[(X^T X+\lambda I)^{-1} X^T Y \right]
+= (X^T X+\lambda I)^{-1} X^T \mathrm{E}\left[ Y \right]
+= (X^T X+\lambda I)^{-1} (X^T X) \beta
+$$
+
+Since $\widetilde \beta \neq \hat \beta$, this is a biased estimator!
+The variance becomes
+
+$$
+\mathrm{Var}(\widetilde{\beta})
+= \mathrm{Var}\left((X^T X+\lambda I)^{-1} X^T Y \right) \\
+= (X^T X+\lambda I)^{-1} X^T~\mathrm{Var}(Y)~ \left((X^T X+\lambda I)^{-1} X^T \right)^T \\
+= \sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}
+$$
+
+So we end up with $\widetilde{\beta} \sim N_{p+1}\left((X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}\right)$.
 
 **Q20:** 
 
