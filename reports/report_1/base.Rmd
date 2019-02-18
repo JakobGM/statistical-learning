@@ -145,11 +145,11 @@ and can be thought of as a summary of how much the model prediction "misses" the
 
 The `F-statistic` is a test statistic for the following hypothesis test
 
-$$
+\begin{gather*}
 \mathrm{H_0}: \beta = \vec{0} \\
 \text{ vs. } \\
 \mathrm{H_1}: \beta_j \neq 0, \text{for at least one } j.
-$$
+\end{gather*}
 
 It tests if at least one of the model covariates have explanatory power. The test statistic is constructed as follows
 
@@ -160,10 +160,10 @@ $$
 
 where
 
-$$
+\begin{gather*}
 \mathrm{TSS} := \sum_{i = 1}^n (y_i - \bar{y})^2 \\
 \bar{y} := \frac{1}{n} \sum_{i = 1}^n y_i.
-$$
+\end{gather*}
 
 The test statistic is Fisher distributed with $p$ and $n - p - 1$ degrees of freedom, in our case $4$ and $649$ respectively. In our case, this test results in a $p$-value of less than $2.2 \cdot 10^{-16}$, and we can relatively confidently conclude that the regression is significant.
 
@@ -257,11 +257,11 @@ We still can't conclude that error normality is definitely satisfied here, so we
 
 **Q6:** 
 
-$$
+\begin{gather*}
 \mathrm{H_0}: \beta_{\mathrm{age}} = 0 \\
 \text{ vs. } \\
 \mathrm{H_1}: \beta_{\mathrm{age}} \neq 0
-$$
+\end{gather*}
 
 $$
 T_{\mathrm{age}} = \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\sqrt{\hat{\mathrm{Var}}(\hat{\beta}_{\mathrm{age}})}} \sim t_{n - 2}
@@ -294,13 +294,13 @@ We can reject the null-hypothesis and conclude that $\beta_{\mathrm{age}} \neq 0
 
 **Q7:** 
 
-$$
-P(-t_{\alpha / 2, n - 2} < T_{\mathrm{age}} < t_{\alpha / 2, n - 2}) = 1 - \alpha \\
+\begin{align*}
+P(-t_{\alpha / 2, n - 2} < T_{\mathrm{age}} < t_{\alpha / 2, n - 2}) &= 1 - \alpha \\
 \implies
-P(-t_{\alpha / 2, n - 2} < \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})} < t_{\alpha / 2, n - 2}) = 1 - \alpha \\
+P(-t_{\alpha / 2, n - 2} < \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})} < t_{\alpha / 2, n - 2}) &= 1 - \alpha \\
 \implies
-P(\hat{\beta}_{\mathrm{age}} - t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}}) < \beta_{\mathrm{age}} < \hat{\beta}_{\mathrm{age}} + t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})) = 1 - \alpha
-$$
+P(\hat{\beta}_{\mathrm{age}} - t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}}) < \beta_{\mathrm{age}} < \hat{\beta}_{\mathrm{age}} + t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})) &= 1 - \alpha
+\end{align*}
 
 So we must find the interval $\hat{\beta}_{\mathrm{age}} \pm t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})$.
 
@@ -399,7 +399,7 @@ The KNN istimator $\hat{y}(x) \in \{0, 1\}$ is determined by taking a "majority 
 its $N$ closest neighbors.
 The KNN estimate of the posterior class probability becomes
 
-$$
+\begin{gather*}
 \hat{P}(Y = y | X = x)
 =
 \frac{1}{K} \sum_{i \in \mathcal{N_x}} I(y_i = y)
@@ -408,17 +408,17 @@ $$
   \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,~~~~~~~~\text{if } y = 1 \\
   1 - \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,~\text{if } y = 0
 \end{cases}
-$$
+\end{gather*}
 
 And the estimator can bayes classifier can be used to construct the estimator $\hat{y}(x)$
 
-$$
+\begin{gather*}
 \hat{y}(x) = 
 \begin{cases} 
   1, ~~~~~\text{if } \hat{P}(Y = 1 | X = x) \geq 0.5 \\
   0, ~~~~~\text{otherwise}
 \end{cases}
-$$
+\end{gather*}
 
 **Q10:** 
 
@@ -629,13 +629,14 @@ ROC %>% ggplot() +
 This curve shows the relationship between the *specificity* and *sensitivity* of the model as the threshold probability goes from $0$ to $1$,
 defined as
 
-$$
+\begin{gather*}
 \text{sensitivity} := \frac{\text{Number of true positives}}{\text{Number of positives}} = \frac{\mathrm{TP}}{\mathrm{P}} \\
 \text{specificity} := \frac{\text{Number of true negatives}}{\text{Number of negatives}} = \frac{\mathrm{TN}}{\mathrm{N}}
-$$
+\end{gather*}
+
 Thus, these extreme thresholds (probability cut-off) must therefore imply the following
 
-$$
+\begin{gather*}
 \text{threshold} \gets 0 \implies 
 \begin{cases}
   \text{sensitivity} = 1 \\
@@ -647,7 +648,7 @@ $$
   \text{sensitivity} = 0 \\
   \text{sensitivity} = 1
 \end{cases}
-$$
+\end{gather*}
 
 The $\mathrm{AUC} \in [0, 1]$ is the area under the $\mathrm{ROC}$ curve. The best case scenario is when the $\mathrm{ROC}$ curve "hugs" the
 upper left corner, resulting in $\mathrm{AUC} = 1$. In our case, we have $\mathrm{AUC} \approx 0.818$.
@@ -795,7 +796,7 @@ So, we have $\hat{f}(x_0) \sim N_1(x_0^T \beta,~\sigma^2 x_0^T (X^T X)^{-1} x_0)
 We will use that for a random variable, $Z$, we have $\mathrm{E}\left[Z^2\right] = \mathrm{Var}(Z) + \mathrm{E}[Z]^2$.
 Also, since $Y_0$ and $\hat{f}(x_0)$ are independent, then $\mathrm{E}[Y_0 \hat{f}(x_0)] = \mathrm{E}[Y_0] \mathrm{E}[\hat{f}(x_0)]$.
 
-$$
+\begin{gather*}
 \text{E}[(Y_0-\hat{f}({\bf x}_0))^2] \\
 = \mathrm{E}\left[ Y_0^2 + \hat{f}(x_0)^2 - 2 Y_0 \hat{f}(x_0) \right] \\
 = 
@@ -823,7 +824,7 @@ $$
   + \sigma^2 x_0^T (X^T X)^{-1} x_0
   + 0^2 \\
 = \text{Irreducible error} + \text{Variance} + \text{Bias}^2
-$$
+\end{gather*}
 
 
 **Q19:** 
@@ -846,12 +847,12 @@ $$
 Since $\widetilde \beta \neq \hat \beta$, this is a biased estimator!
 The variance becomes
 
-$$
+\begin{gather*}
 \mathrm{Var}(\widetilde{\beta})
 = \mathrm{Var}\left((X^T X+\lambda I)^{-1} X^T Y \right) \\
 = (X^T X+\lambda I)^{-1} X^T~\mathrm{Var}(Y)~ \left((X^T X+\lambda I)^{-1} X^T \right)^T \\
 = \sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}
-$$
+\end{gather*}
 
 So we end up with $\widetilde{\beta} \sim N_{p+1}\left((X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}\right)$.
 
@@ -881,7 +882,7 @@ And therefore we have $\widetilde{f}(x_0) \sim N_1\left(x_0^T (X^T X+\lambda I)^
 
 Again, we decompose the MSE, skipping the initial decomposition proof this time
 
-$$
+\begin{gather*}
 \text{E}[(Y_0-\widetilde{f}({\bf x}_0))^2] \\
 =
   \left(\text{E}\left[ \widetilde{f}(x_0) \right] - f(x_0) \right)^2
@@ -892,7 +893,7 @@ $$
   + \sigma^2 x_0^T (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1} x_0
   + \sigma^2 I \\
 =  \text{Bias}^2 + \text{Variance} + \text{Irreducible error}
-$$
+\end{gather*}
 
 **Q22:** 
 
