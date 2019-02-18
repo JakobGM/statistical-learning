@@ -746,28 +746,24 @@ $$
 
 First, let's find the expected value for $\hat{beta}$. Here we will use that a linear combination, $C$, of a normal vector, $Y$, satisfies $E[CY] = C E[Y]$, and that $E[\epsilon] = 0$:
 
-$$
-\begin{align}
+\begin{align*}
 E[\hat{\beta}]
 &= E\left[(X^T X)^{-1} X^T Y\right]
 = (X^T X)^{-1} X^T E[Y] \\
 &= (X^T X)^{-1} X^T E[X \beta + \epsilon]
 = (X^T X)^{-1} X^T X \beta = \beta
-\end{align}
-$$
+\end{align*}
 
 This is an unbiased estimator! Now onto the variance-covariance matrix for $\hat{\beta}$.
 Here, we will use the fact that $\mathrm{Cov}(CY) = C \mathrm{Cov}(Y) C^T$, and $\mathrm{Cov}(Y) = \sigma^2 I$.
 
-$$
-\begin{align}
+\begin{align*}
 \mathrm{Cov}(\hat{\beta})
 &= \mathrm{Cov}\left((X^T X)^{-1} X^T Y\right)
 = (X^T X)^{-1} X^T \mathrm{Cov}(Y) ((X^T X)^{-1} X^T)^T \\
 &= (X^T X)^{-1} X^T \sigma^2 I ((X^T X)^{-1} X^T)^T
 = (X^T X)^{-1} \sigma^2
-\end{align}
-$$
+\end{align*}
 
 So the result is that $\hat{\beta} \sim N_{p + 1}(\beta, \sigma^2 (X^T X)^{-1})$.
 
@@ -913,8 +909,6 @@ sigma
 ```
 
 Hint: we perform matrix multiplication using `%*%`, transpose of a matrix `A` with `t(A)` and inverse with `solve(A)`. 
-
-**Q22:** 
 
 ```{r,eval=FALSE}
 sqbias <- function(lambda, X, x0, beta) {
