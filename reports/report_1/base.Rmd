@@ -882,8 +882,23 @@ $$
 And therefore we have $\widetilde{f}(x_0) \sim N_1\left(x_0^T (X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 x_0^T (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1} x_0 \right)$.
 
 **Q21:** 
-$$\text{E}[(Y_0-\widetilde{f}({\bf x}_0))^2]=[\text{E}(\widetilde{f}({\bf x}_0)-f({\bf x}_0)]^2+\text{Var}(\widetilde{f}({\bf x}_0) ) + \text{Var}(\varepsilon)$$
 
+Again, we decompose the MSE, skipping the initial decomposition proof this time
+
+$$
+\text{E}[(Y_0-\widetilde{f}({\bf x}_0))^2] \\
+=
+  \left(\text{E}\left[ \widetilde{f}(x_0) \right] - f(x_0) \right)^2
+  + \text{Var}\left( \widetilde{f}({\bf x}_0) \right)
+  + \text{Var}(\varepsilon) \\
+=
+  \left(x_0^T (X^T X+\lambda I)^{-1} (X^T X) \beta - x_0^T \beta \right)^2
+  + \sigma^2 x_0^T (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1} x_0
+  + \sigma^2 I \\
+=  \text{Bias}^2 + \text{Variance} + \text{Irreducible error}
+$$
+
+**Q22:** 
 
 ```{r}
 values <- dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/BVtradeoffvalues.dd")
