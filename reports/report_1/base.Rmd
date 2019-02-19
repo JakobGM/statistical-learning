@@ -972,6 +972,8 @@ Again, we decompose the MSE, skipping the initial decomposition proof this time
 
 **Q22:** 
 
+We will now fetch values for $X$, $x_0$, $\beta$ and $\sigma$.
+
 ```{r}
 values <- dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/BVtradeoffvalues.dd")
 X <- values$X
@@ -984,12 +986,14 @@ sigma <- values$sigma
 sigma
 ```
 
-Hint: we perform matrix multiplication using `%*%`, transpose of a matrix `A` with `t(A)` and inverse with `solve(A)`. 
+And plot the squared bias of $\widetilde{f}(x_0)$ as a function of $\lambda$.
 
-```{r,eval=FALSE}
+```{r, eval=TRUE}
 sqbias <- function(lambda, X, x0, beta) {
   p <- dim(X)[2]
-  value <- #HERE YOU FILL IN
+  XtX <- t(X) %*% X
+  lambdaI <- diag(x = lambda, nrow = p)
+  value <- (t(x0) %*% solve(XtX + lambdaI) %*% XtX %*% beta - t(x0) %*% beta) ** 2
   return(value)
 }
 thislambda <- seq(0,2,length=500)
@@ -999,6 +1003,9 @@ for (i in 1:length(thislambda)) {
 }
 plot(thislambda, sqbiaslambda, col = 2, type = "l")
 ```
+
+Since $\lambda$ decreases the flexibility of the resulting model, we would expect the squared bias to increase as $\lambda$ increases.
+Asymptotically, the graph reflects this prediction, but there is a "dip" in the region $\sim [0.1, 0.5]$, which is not exactly what we expected.
 
 **Q23:** 
 
