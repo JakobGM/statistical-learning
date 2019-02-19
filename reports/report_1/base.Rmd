@@ -1031,7 +1031,9 @@ It also reflects the bias-variance trade-off.
 
 **Q24:** 
 
-```{r,eval=FALSE}
+We now plot all the MSE decompositions, and the total MSE in the same figure.
+
+```{r, eval = TRUE}
 tot <- sqbiaslambda+variancelambda+sigma^2
 which.min(tot)
 thislambda[which.min(tot)]
@@ -1041,3 +1043,5 @@ lines(thislambda, variancelambda, col = 4)
 lines(thislambda, rep(sigma^2,500), col = "orange")
 abline(v = thislambda[which.min(tot)], col = 3)
 ```
+
+The optimal $\lambda$ is the one which minimizes the total MSE, which in this case is $\lambda \approx 0.994$.
