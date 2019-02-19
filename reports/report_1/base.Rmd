@@ -313,32 +313,36 @@ We now want perform the following hypothesis test
 In order to test this, define the following $t$-distributed test statistic
 
 $$
-T_{\mathrm{age}} = \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\sqrt{\hat{\mathrm{Var}}(\hat{\beta}_{\mathrm{age}})}} \sim t_{n - 2}.
+T_{\mathrm{age}}
+= \frac{\hat{\beta}_{\mathrm{age}} - \beta_{\mathrm{age}}}{\hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})}
+\sim t_{n - p - 1}.
 $$
 The $p$-value for the test is defined by
 
 $$
 p\text{-value} := P(T_{\mathrm{age}} > t_{\mathrm{age}})
 $$
+
 We now calculate this value
 
 ```{r,eval=TRUE}
 n <- nobs(modelA)
+p <- length(modelA$coefficients)
 betaAge <- beta["Age"]
 betaSE <- modelAEstimates$`Std. Error`[2]
 tTestStatistic <- betaAge / betaSE
-pValue <- 2 * pt(q = tTestStatistic, df = n - 2, lower.tail = FALSE)
+pValue <- 2 * pt(q = tTestStatistic, df = n - p - 1, lower.tail = FALSE)
 pValue
 ```
 
 The $p$-value is $\approx 7.1 \cdot 10^{-12}$, which coincides with the model summary output from earlier.
 
-With a significance level of 5%, the critical value (which gives the cut-off) can be compared
+With a significance level of 0.01, the critical value (which gives the cut-off) can be compared
 with our $t$-statistic.
 
 ```{r}
-alpha <- 0.05
-criticalValue <- qt(p = alpha / 2, df = n - 2, lower.tail = FALSE)
+alpha <- 0.01
+criticalValue <- qt(p = alpha / 2, df = n - p - 1, lower.tail = FALSE)
 kable(tibble("t-statistic" = tTestStatistic, "critical value" = criticalValue))
 ```
 
@@ -346,7 +350,7 @@ We can reject the null-hypothesis and conclude that $\beta_{\mathrm{age}} \neq 0
 
 **Q7:** 
 
-A $95\%$ confidence interval for $\beta_{\mathrm{age}}$ can be constructed with the same test statistic as above in the following way
+A $99\%$ confidence interval for $\beta_{\mathrm{age}}$ can be constructed with the same test statistic as above in the following way
 
 \begin{align*}
 P(-t_{\alpha / 2, n - 2} < T_{\mathrm{age}} < t_{\alpha / 2, n - 2}) &= 1 - \alpha \\
@@ -359,16 +363,17 @@ P(\hat{\beta}_{\mathrm{age}} - t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\ha
 So we must find the interval $\hat{\beta}_{\mathrm{age}} \pm t_{\alpha / 2, n - 2} \cdot \hat{\mathrm{SE}}(\hat{\beta}_{\mathrm{age}})$.
 
 ```{r,eval=TRUE}
-alpha <- 0.05
-radius <- qt(p = alpha / 2, df = n - 2, lower.tail = FALSE) * betaSE
+alpha <- 0.01
+radius <- qt(p = alpha / 2, df = n - p - 2, lower.tail = FALSE) * betaSE
 confidenceInterval <- tibble(lower = betaAge - radius, upper = betaAge + radius)
 confidenceInterval %>% kable()
 ```
 
-Notice that the 95% confidence interval for $\beta_{\mathrm{age}}$ is entirely positive.
+A 99% confidence interval can be interpreted as an interval that has a 99% chance of covering the true parameter value, $\beta_{\mathrm{age}}$.
+Notice that the 99% confidence interval for $\beta_{\mathrm{age}}$ is entirely positive.
 We can therefore relatively confidently conclude that `age` has a positive effect on `FEV`, as the multiplicative effect becomes greater than one, which is really useful.
-This positive 95% interval (i.e. not containing $0$) is also closely related to the fact that we rejected the null-hypothesis at a 5% $p$-value cut-off in the previous task,
-since we can say with 95% confidence that $\beta_{\mathrm{age}}$ is nonzero.
+This positive 99% interval (i.e. not containing $0$) is also closely related to the fact that we rejected the null-hypothesis at a 1% $p$-value cut-off in the previous task,
+since we can say with $\gtrapprox 99\%$ confidence that $\beta_{\mathrm{age}}$ is nonzero.
 
 **Q8:**
 
@@ -377,7 +382,7 @@ We now want to make a model prediction for a 16 year old non-smoking male of hei
 First we want to predict a value for `log(FEV)` by calculating
 
 $$
-\hat{\log({\mathrm{FEV}})} = x_0^T \hat{\beta}
+\widehat{\log({\mathrm{FEV}})} = x_0^T \hat{\beta}
 $$
 This can be done with the R-function `predict()` like this 
 
@@ -399,7 +404,7 @@ logPrediction <- as_tibble(
 print(logPrediction$fit)
 ```
 
-Our best guess, based on `modelA`, for `log(FEV)` is thus $\approx 1.33$.
+Our best guess, based on `modelA`, for `log(FEV)` is thus $\approx 1.32$.
 
 We can also construct a confidence interval for this predicted logarithmic value by using the following formula (given without proof)
 
@@ -450,21 +455,21 @@ Mdf <- data.frame(M, "istest" = as.factor(trte))
 
 Define $\mathcal{N}_x$ to be the set of the $K$ closest points to the point $x = (x_1, x_2)$.
 The KNN istimator $\hat{y}(x) \in \{0, 1\}$ is determined by taking a "majority vote" of
-its $N$ closest neighbors.
+$x$'s $N$ closest neighbors.
 The KNN estimate of the posterior class probability becomes
 
 \begin{gather*}
 \hat{P}(Y = y | X = x)
 =
-\frac{1}{K} \sum_{i \in \mathcal{N_x}} I(y_i = y)
+\frac{1}{K} \sum_{i \in \mathcal{N}_x} I(y_i = y)
 =
 \begin{cases}
-  \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,~~~~~~~~\text{if } y = 1 \\
-  1 - \frac{1}{K} \sum_{i \in \mathcal{N_x}} y_i,~\text{if } y = 0
+  \frac{1}{K} \sum_{i \in \mathcal{N}_x} y_i,~~~~~~~~\text{if } y = 1 \\
+  1 - \frac{1}{K} \sum_{i \in \mathcal{N}_x} y_i,~\text{if } y = 0
 \end{cases}
 \end{gather*}
 
-And the estimator can bayes classifier can be used to construct the estimator $\hat{y}(x)$
+And the Bayes classifier can be used to construct the estimator $\hat{y}(x)$
 
 \begin{gather*}
 \hat{y}(x) = 
@@ -475,6 +480,13 @@ And the estimator can bayes classifier can be used to construct the estimator $\
 \end{gather*}
 
 **Q10:** 
+
+The training error rate is given by
+
+$$\frac{1}{n_{train}}\sum_{i \in J_{train}}I(y_i \neq \hat{y}(x_i)),$$
+where $J_{train}$ is the set of $n_{train}$ indices defining the training set. Similarly the test error rate is given by
+
+$$\frac{1}{n_{\mathrm{test}}}\sum_{i \in J_{\text{test}}}I(y_i \neq \hat{y}(x_i))$$
 
 We now calculate the error rates of the training and test sets for $K = 1, 2, ..., 30$ and plot these results.
 
@@ -529,18 +541,19 @@ result %>% ggplot(aes(x = K)) +
   ylab("Error rate")
 ```
 
-As expected, the training set has the lowest error rate for $K = 1$. The reason for the error not being
-exactly zero at $K = 1$ is due to duplicate $x$ entries.
+As expected, the training set has the lowest error rate for $K = 1$, since the model closely fits the training data.
+The reason for the error not being exactly zero at $K = 1$ is due to duplicate $x$ entries.
+
+**Q11:** 
+
+We now calculate the cross-validation (CV) error using five folds.
 
 ```{r, eval=TRUE}
 set.seed(0)
-ks <- 1:30 # Choose K from 1 to 30.
-idx <- createFolds(M[tr,1], k=5) # Divide the training data into 5 folds.
-# "Sapply" is a more efficient for-loop. 
-# We loop over each fold and each value in "ks"
-# and compute error rates for each combination.
-# All the error rates are stored in the matrix "cv", 
-# where folds are rows and values of $K$ are columns.
+# Choose K from 1 to 30.
+ks <- 1:30
+# Divide the training data into 5 folds.
+idx <- createFolds(M[tr,1], k=5)
 cv = sapply(
   ks,
   function(k){ 
@@ -560,20 +573,20 @@ cv = sapply(
 )
 ```
 
-
-**Q11:** 
+Now we can calculate the average CV error, the standard error of the average CV error over the five folds, and the $K$-value which corresponds to the smallest CV error.
 
 ```{r, eval=TRUE}
 cv.e <- colMeans(cv)
 cv.se <- apply(cv, 2, sd) / sqrt(5)
 k.min <- which.min(cv.e)
+print(k.min)
 ```
 
 **Q12:** 
 
 We now plot the misclassification errors.
 
-```{r,eval=FALSE}
+```{r,eval = TRUE}
 library(colorspace)
 co <- rainbow_hcl(3)
 par(mar = c(4,4,1,1) + 0.1, mgp = c(3, 1, 0))
@@ -589,7 +602,7 @@ legend("topright", legend = c("Test", "5-fold CV", "Training"), lty = 1,
 
 The bias of $\hat{y}(x)$ will increase with increasing $K$, but the variance will *decrease* with increasing $K$.
 The variance is high for $K = 1$ because only the nearest neighbours is used and noise will therefore affect the model quite a lot.
-The bias is low for $K = 1$ because the model will be very close to the training data.
+The bias is low for $K = 1$ because the model predictions will be very close to the training data.
 
 **Q13:** 
 
@@ -671,7 +684,7 @@ ROC %>% ggplot() +
   labs(
     title = "ROC curve",
     caption = paste(
-      c("AUC: ", signif(player1ROC$auc, 3)),
+      c("AUC=", signif(player1ROC$auc, 3), ", K=", K),
       collapse = " "
     )
   ) +
@@ -694,13 +707,13 @@ Thus, these extreme thresholds (probability cut-off) must therefore imply the fo
 \text{threshold} \gets 0 \implies 
 \begin{cases}
   \text{sensitivity} = 1 \\
-  \text{sensitivity} = 0
+  \text{specificity} = 0
 \end{cases}
 \\
 \text{threshold} \gets 1 \implies 
 \begin{cases}
   \text{sensitivity} = 0 \\
-  \text{sensitivity} = 1
+  \text{specificity} = 1
 \end{cases}
 \end{gather*}
 
@@ -709,6 +722,14 @@ upper left corner, resulting in $\mathrm{AUC} = 1$. In our case, we have $\mathr
 
 Random guessing can be thought of as drawing samples $u \sim \mathcal{U}(0, 1)$ and comparing it to the threshold probability in order to make
 a prediction. Since $P(u < p) = p$, the resulting specificity-sensitivity graph becomes a straight line (on average), and the $\mathrm{AUC}$ becomes $0.5$.
+
+A random guess classifier corresponds to a posterior distribution $\mathrm{P}(Y = 1 | X = x)\sim\mathcal{U}(0,1)$. This in turn means that $\mathrm{TP}\sim \mathcal{Bin}(P,1-t)$, $t$ being the threshold, and $\mathrm{TN}\sim \mathcal{Bin}(N,t)$. Thus
+
+$$
+\text{E}[\text{sensitivity}] = \text{E}\left[\frac{TP}{P}\right] = 1-t = 1-\text{E}\left[\frac{TN}{N}\right] = 1 - \text{E}[\text{specificity}]
+$$
+
+Which means that the ROC curve will be expected to lie on the green diagonal in the plot, which will result in $\text{E}[\text{AUC}] = 0.5$
 
 **Q15:**
 
