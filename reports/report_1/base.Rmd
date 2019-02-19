@@ -1009,11 +1009,13 @@ Asymptotically, the graph reflects this prediction, but there is a "dip" in the 
 
 **Q23:** 
 
-```{r,eval=FALSE}
+We now plot the variance of $\widetilde{f}(x_0)$ as a function of $\lambda$.
+
+```{r, eval = TRUE}
 variance <- function(lambda, X, x0, sigma) {
   p <- dim(X)[2]
   inv <- solve(t(X)%*%X+lambda*diag(p))
-  value <- #HERE YOU FILL IN
+  value <- sigma ** 2 * t(x0) %*% inv %*% (t(X) %*% X) %*% inv %*% x0
   return(value)
 }
 thislambda <- seq(0,2,length=500)
@@ -1024,6 +1026,8 @@ for (i in 1:length(thislambda)) {
 plot(thislambda, variancelambda, col = 4, type = "l")
 ```
 
+This is what we would expect, from the fact that as $\lambda$ tends to infinity, the training data is not weighted at all.
+It also reflects the bias-variance trade-off.
 
 **Q24:** 
 
