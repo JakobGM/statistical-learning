@@ -733,6 +733,8 @@ Which means that the ROC curve will be expected to lie on the green diagonal in 
 
 **Q15:**
 
+We now plot the decision boundary of $\tilde{y}(x) = \underset{k}{\mathrm{argmax}}$, which is simply the line $x_1 = x_2$.
+
 ```{r,eval=TRUE}
 tb <- tibble(
   x1 = M$x1,
@@ -798,6 +800,8 @@ tb %>% ggplot() +
   )
 ```
 
+Now we move onto the calculation of the confusion matrices and misclassification errors of $\hat{y}(x)$ and $\tilde{y}(x)$.
+
 ```{r}
 train <- tb %>% slice(-tr)
 argmaxConfMatrix <- confusionMatrix(table(train$yHat, train$y))
@@ -807,20 +811,23 @@ print(knnConfMatrix)
 ```
 
 These two predictors perform really similarly, since the 95% confidence interval for the accuracy is quite overlapping.
-The KNN predictor has better specificity, while the argmax predictor has better sensitivity. 
-We prefer the argmax predictor since it has better overall accuracy.
+The KNN predictor has better specificity, while the argmax predictor has better sensitivity.
+Neither specificity nor sensitivity is of particual interest, since the choice of player 1 is arbitrary, and it is a "symmetric" problem.
+Hence, we prefer the argmax predictor since it has (barely) better overall accuracy.
 
 # Problem 3: Bias-variance trade-off 
 
-Here you see how to write formulas with latex (needed below)
+
+**Q16:** 
+
+Consider the least squares estimator for a linear regression model
 
 $$
 \hat{\boldsymbol \beta}=({\bf X}^T{\bf X})^{-1}{\bf X}^T{\bf Y}
 $$
 
-**Q16:** 
-
-First, let's find the expected value for $\hat{beta}$. Here we will use that a linear combination, $C$, of a normal vector, $Y$, satisfies $E[CY] = C E[Y]$, and that $E[\epsilon] = 0$:
+First, let's find the expected value for $\hat{\beta}$.
+Here we will use that a linear combination, $C$, of a normal vector, $Y$, satisfies $E[CY] = C E[Y]$, and that $E[\epsilon] = 0$:
 
 \begin{align*}
 E[\hat{\beta}]
@@ -830,7 +837,9 @@ E[\hat{\beta}]
 = (X^T X)^{-1} X^T X \beta = \beta
 \end{align*}
 
-This is an unbiased estimator! Now onto the variance-covariance matrix for $\hat{\beta}$.
+This is an unbiased estimator!
+
+Now onto the variance-covariance matrix for $\hat{\beta}$.
 Here, we will use the fact that $\mathrm{Cov}(CY) = C \mathrm{Cov}(Y) C^T$, and $\mathrm{Cov}(Y) = \sigma^2 I$.
 
 \begin{align*}
@@ -841,7 +850,7 @@ Here, we will use the fact that $\mathrm{Cov}(CY) = C \mathrm{Cov}(Y) C^T$, and 
 = (X^T X)^{-1} \sigma^2
 \end{align*}
 
-So the result is that $\hat{\beta} \sim N_{p + 1}(\beta, \sigma^2 (X^T X)^{-1})$.
+So the result is that $\hat{\beta} \sim N_{p + 1}(\beta, \sigma^2 (X^T X)^{-1})$, $p$ being the number of covariates in the model.
 
 **Q17:** 
 
@@ -855,13 +864,15 @@ E\left[\hat{f}(x_0)\right]
 = E[Y_0]
 $$
 
-So this is an unbiased predictor! Now, the variance of the predictor.
+So this is also an unbiased predictor!
+
+Now, the variance of the predictor is
 
 $$
 \mathrm{Var}(\hat{f}(x_0))
 = \mathrm{Var}(x_0^T \hat{\beta})
 = x_0^T \mathrm{Cov}(\hat \beta) x_0
-= \sigma^2 x_0^T (X^T X)^{-1} x_0
+= \sigma^2 x_0^T (X^T X)^{-1} x_0.
 $$
 
 So, we have $\hat{f}(x_0) \sim N_1(x_0^T \beta,~\sigma^2 x_0^T (X^T X)^{-1} x_0)$.
@@ -920,13 +931,14 @@ $$
 $$
 
 Since $\widetilde \beta \neq \hat \beta$, this is a biased estimator!
+
 The variance becomes
 
 \begin{gather*}
 \mathrm{Var}(\widetilde{\beta})
 = \mathrm{Var}\left((X^T X+\lambda I)^{-1} X^T Y \right) \\
 = (X^T X+\lambda I)^{-1} X^T~\mathrm{Var}(Y)~ \left((X^T X+\lambda I)^{-1} X^T \right)^T \\
-= \sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}
+= \sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}.
 \end{gather*}
 
 So we end up with $\widetilde{\beta} \sim N_{p+1}\left((X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}\right)$.
@@ -972,7 +984,7 @@ Again, we decompose the MSE, skipping the initial decomposition proof this time
 
 **Q22:** 
 
-We will now fetch values for $X$, $x_0$, $\beta$ and $\sigma$.
+We will now fetch pre-calculated values for $X$, $x_0$, $\beta$ and $\sigma$.
 
 ```{r}
 values <- dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/BVtradeoffvalues.dd")
@@ -1026,8 +1038,8 @@ for (i in 1:length(thislambda)) {
 plot(thislambda, variancelambda, col = 4, type = "l")
 ```
 
-This is what we would expect, from the fact that as $\lambda$ tends to infinity, the training data is not weighted at all.
-It also reflects the bias-variance trade-off.
+This is what we would expect, from the fact that as $\lambda$ increases, the design matrix is relatively less weighted.
+This is in accordance with the bias-variance trade-off.
 
 **Q24:** 
 
