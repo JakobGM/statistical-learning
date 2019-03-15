@@ -8,7 +8,7 @@ output:
   #pdf_document
 ---
   
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(error=FALSE)
 knitr::opts_chunk$set(warning=FALSE)
@@ -39,16 +39,53 @@ install.packages("nnet") # for feed forward neural networks
 # Problem 1: Regression [6 points]
 
 ```{r}
-all=dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/diamond.dd")
-dtrain=all$dtrain
-dtest=all$dtest
+all <- dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/diamond.dd")
+dtrain <- all$dtrain
+dtest <- all$dtest
 ```
 
 **Q1**: Would you choose `price` or `logprice` as response variable? Justify your choice. Next, plot your choice of response pairwise with `carat`, `logcarat`, `color`, `clarity` and `cut`. Comment.
 
-Use the local regression model $\texttt{logprice} = \beta_0 + \beta_1 \texttt{carat}+ \beta_2 \texttt{carat}^2$ weighted by the tricube kernel $K_{i0}$. 
+We choose `logprice` as the response variable, since we postulate that diamant qualities have a *multiplicative* effect on the price, not *additive*. A logarithmic response will result in such an interpretation of the regression coefficients. We now create the plots as instructed.
 
-**Q2:** What is the predicted price of a diamond weighting 1 carat. Use the closest 20% of the observations.  
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tibble)
+library(tidyr)
+
+# Combine both training and testing set for plotting
+dall <- bind_rows(dtrain, dtest)
+
+# Plot categorical covariates
+dall %>%
+  gather(key, value, c("cut", "color", "clarity")) %>%
+  ggplot(aes(y = logprice)) +
+  geom_point(aes(x = value)) +
+  facet_grid(.~key, scales = "free")
+
+# Plot continuous covariates
+dall %>%
+  gather(key, value, c("carat", "logcarat")) %>%
+  ggplot(aes(y = logprice)) +
+  geom_point(aes(x = value)) +
+  facet_grid(.~key, scales = "free")
+```
+
+We observe that `logcarat` seems to be the covariate that has the most linear effect, which is promising. The `clarity`, `color`, and `cut` covariates do not seem to have little to none distinguishing effect on the price.
+
+**Q2:** What is the predicted price of a diamond weighting 1 carat. Use the closest 20% of the observations. 
+
+Use the local regression model $\texttt{logprice} = \beta_0 + \beta_1 \texttt{carat}+ \beta_2 \texttt{carat}^2$ weighted by the tricube kernel $K_{i0}$.
+
+```{r}
+model1 <- loess(logprice ~ carat + carat^2, data = dtrain, span = 0.2)
+new_observation <- list(carat = 1)
+predict(model1, new_observation)
+```
+
+Why can't we use `as.is`?
+
 **Q3:** What choice of $\beta_1$, $\beta_2$ and $K_{i0}$ would result in KNN-regression?  
 
 **Q4:** Describe how you can perform model selection in regression with AIC as criterion.  
