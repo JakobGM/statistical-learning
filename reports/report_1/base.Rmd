@@ -4,8 +4,8 @@ title: "Compulsory exercise 1: Group 64"
 author: "Jakob Gerhard Martinussen, Alm Wilson"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-  html_document
-  #pdf_document
+  # html_document
+  pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -733,7 +733,7 @@ Which means that the ROC curve will be expected to lie on the green diagonal in 
 
 **Q15:**
 
-We now plot the decision boundary of $\tilde{y}(x) = \underset{k}{\mathrm{argmax}}$, which is simply the line $x_1 = x_2$.
+We now plot the decision boundary of $\tilde{y}(x) = \mathrm{argmax}_k$, which is simply the line $x_1 = x_2$.
 
 ```{r,eval=TRUE}
 tb <- tibble(
@@ -813,7 +813,7 @@ print(knnConfMatrix)
 These two predictors perform really similarly, since the 95% confidence interval for the accuracy is quite overlapping.
 The KNN predictor has better specificity, while the argmax predictor has better sensitivity.
 Neither specificity nor sensitivity is of particual interest, since the choice of player 1 is arbitrary, and it is a "symmetric" problem.
-Hence, we prefer the argmax predictor since it has (barely) better overall accuracy.
+Hence, we prefer the argmax predictor since it has better overall accuracy.
 
 # Problem 3: Bias-variance trade-off 
 
@@ -837,7 +837,7 @@ E[\hat{\beta}]
 = (X^T X)^{-1} X^T X \beta = \beta
 \end{align*}
 
-This is an unbiased estimator!
+This is an unbiased estimator.
 
 Now onto the variance-covariance matrix for $\hat{\beta}$.
 Here, we will use the fact that $\mathrm{Cov}(CY) = C \mathrm{Cov}(Y) C^T$, and $\mathrm{Cov}(Y) = \sigma^2 I$.
@@ -850,7 +850,7 @@ Here, we will use the fact that $\mathrm{Cov}(CY) = C \mathrm{Cov}(Y) C^T$, and 
 = (X^T X)^{-1} \sigma^2
 \end{align*}
 
-So the result is that $\hat{\beta} \sim N_{p + 1}(\beta, \sigma^2 (X^T X)^{-1})$, $p$ being the number of covariates in the model.
+So the result is that $\hat{\beta} \sim N_{k + 1}(\beta, \sigma^2 (X^T X)^{-1})$, $k$ being the number of covariates in the model.
 
 **Q17:** 
 
@@ -864,7 +864,7 @@ E\left[\hat{f}(x_0)\right]
 = E[Y_0]
 $$
 
-So this is also an unbiased predictor!
+So this is also an unbiased predictor.
 
 Now, the variance of the predictor is
 
@@ -912,6 +912,8 @@ Also, since $Y_0$ and $\hat{f}(x_0)$ are independent, then $\mathrm{E}[Y_0 \hat{
 = \text{Irreducible error} + \text{Variance} + \text{Bias}^2
 \end{gather*}
 
+The bias becomes zero as we have perfect knowledge about the true function $f$ and a model that reflects this.
+
 
 **Q19:** 
 
@@ -941,7 +943,7 @@ The variance becomes
 = \sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}.
 \end{gather*}
 
-So we end up with $\widetilde{\beta} \sim N_{p+1}\left((X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}\right)$.
+So we end up with $\widetilde{\beta} \sim N_{k + 1}\left((X^T X+\lambda I)^{-1} (X^T X) \beta,~\sigma^2 (X^T X+\lambda I)^{-1} (X^T X) (X^T X+\lambda I)^{-1}\right)$.
 
 **Q20:** 
 
@@ -982,6 +984,8 @@ Again, we decompose the MSE, skipping the initial decomposition proof this time
 =  \text{Bias}^2 + \text{Variance} + \text{Irreducible error}
 \end{gather*}
 
+We have therefore introduced a nonzero bias compared to the classical linear model.
+
 **Q22:** 
 
 We will now fetch pre-calculated values for $X$, $x_0$, $\beta$ and $\sigma$.
@@ -1017,7 +1021,7 @@ plot(thislambda, sqbiaslambda, col = 2, type = "l")
 ```
 
 Since $\lambda$ decreases the flexibility of the resulting model, we would expect the squared bias to increase as $\lambda$ increases.
-Asymptotically, the graph reflects this prediction, but there is a "dip" in the region $\sim [0.1, 0.5]$, which is not exactly what we expected.
+Asymptotically, the graph reflects this prediction, but there is a "dip" around the region $[0.1, 0.5]$, which is not exactly what we expected.
 
 **Q23:** 
 
@@ -1038,12 +1042,12 @@ for (i in 1:length(thislambda)) {
 plot(thislambda, variancelambda, col = 4, type = "l")
 ```
 
-This is what we would expect, from the fact that as $\lambda$ increases, the design matrix is relatively less weighted.
-This is in accordance with the bias-variance trade-off.
+The plot looks like what we would expect, from the fact that as $\lambda$ increases, then the diagonal $\lambda$ matrix becomes more dominant relative to the test data.
+This is in accordance with the bias-variance trade-off, since the flexibility here decreases with increasing $\lambda$.
 
 **Q24:** 
 
-We now plot all the MSE decompositions, and the total MSE in the same figure.
+We now plot all the MSE decompositions and the total MSE in the same figure.
 
 ```{r, eval = TRUE}
 tot <- sqbiaslambda+variancelambda+sigma^2
@@ -1056,4 +1060,4 @@ lines(thislambda, rep(sigma^2,500), col = "orange")
 abline(v = thislambda[which.min(tot)], col = 3)
 ```
 
-The optimal $\lambda$ is the one which minimizes the total MSE, which in this case is $\lambda \approx 0.994$.
+The optimal $\lambda$ is the one which minimizes the total test MSE, which in this case is $\lambda \approx 0.994$.
