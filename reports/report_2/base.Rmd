@@ -61,7 +61,7 @@ dall <- bind_rows(dtrain, dtest)
 dall %>%
   gather(key, value, c("cut", "color", "clarity")) %>%
   ggplot(aes(y = logprice)) +
-  geom_point(aes(x = value)) +
+  geom_point(aes(x = value), alpha = 0.3) +
   facet_grid(.~key, scales = "free")
 
 # Plot continuous covariates
@@ -76,15 +76,23 @@ We observe that `logcarat` seems to be the covariate that has the most linear ef
 
 **Q2:** What is the predicted price of a diamond weighting 1 carat. Use the closest 20% of the observations. 
 
-Use the local regression model $\texttt{logprice} = \beta_0 + \beta_1 \texttt{carat}+ \beta_2 \texttt{carat}^2$ weighted by the tricube kernel $K_{i0}$.
+We now use the local regression model $\texttt{logprice} = \beta_0 + \beta_1 \texttt{carat}+ \beta_2 \texttt{carat}^2$ weighted by the tricube kernel $K_{i0}$.
 
 ```{r}
 model1 <- loess(logprice ~ carat + carat^2, data = dtrain, span = 0.2)
-new_observation <- list(carat = 1)
-predict(model1, new_observation)
 ```
 
 Why can't we use `as.is`?
+
+We make a price prediction for a 1 carat diamond, using the closest 20\% of the observations:
+
+```{r}
+new_observation <- list(carat = 1)
+price_prediction <- 10 ^ predict(model1, new_observation)
+sprintf("$%.2f USD", price_prediction)
+```
+
+So the prediction is that a 1 carat diamond will cost $\simeq$ $5100 USD.
 
 **Q3:** What choice of $\beta_1$, $\beta_2$ and $K_{i0}$ would result in KNN-regression?  
 
