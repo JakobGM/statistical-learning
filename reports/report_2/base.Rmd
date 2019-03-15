@@ -94,7 +94,25 @@ sprintf("$%.2f USD", price_prediction)
 
 So the prediction is that a 1 carat diamond will cost $\simeq$ $5100 USD.
 
-**Q3:** What choice of $\beta_1$, $\beta_2$ and $K_{i0}$ would result in KNN-regression?  
+**Q3:** What choice of $\beta_1$, $\beta_2$ and $K_{i0}$ would result in KNN-regression?
+
+If we set the following values
+
+$$
+\beta_1 \leftarrow 0 \\
+\beta_2 \leftarrow 0 \\
+K_{i0} \leftarrow \frac{1}{K} I(i \in \mathcal{N}_0), 
+$$
+
+it yields the following
+
+$$
+\sum_{i = 1}^n K_{i0}(y_i - \beta_1 x_i - \beta_2x_i^2)^2
+=
+\frac{1}{K} \sum_{i \in \mathcal{N}_0} y_i,
+$$
+
+which is the definition of KNN-regression. Here $\mathcal{N}_0$ is the index set for the $K$ nearest neighbours to $x_0$, measured in Euclidean distance.
 
 **Q4:** Describe how you can perform model selection in regression with AIC as criterion.  
 **Q5:** What are the main differences between using AIC for model selection and using cross-validation (with mean squared test error MSE)?  
