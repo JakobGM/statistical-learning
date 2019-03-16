@@ -176,6 +176,13 @@ All other covariates must be interpreted *relative to* this "reference diamond".
 
 **Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).
 
+```{r}
+test_mse <- mean((dtest$logprice - predict.lm(fit, dtest))^2)
+test_mse
+```
+
+The test MSE is $\simeq 0.0036$.
+
 
 **Q8:** Build a model matrix for the covariates `~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1`. What is the dimension of this matrix?
 **Q9:** Fit a lasso regression to the diamond data with `logprice` as the response and the model matrix given in Q8. How did you find the value to be used for the regularization parameter?
