@@ -108,42 +108,89 @@ We use $|M| + 1$, because we have to add the estimated variance of the error ter
 
 When we do model selection, i.e. picking between different candidate models, we can pick the model with the *lowest* value for AIC.
 
-**Q5:** What are the main differences between using AIC for model selection and using cross-validation (with mean squared test error MSE)?  
+**Q5:** What are the main differences between using AIC for model selection and using cross-validation (with mean squared test error MSE)?
 
 Here are the main differences:
 
 * CV requires you to split your data set into *training* and *testing* subsets. This results in smaller sample sizes for fitting the models, and can result in an overestimation of the validation set error.
 * CV test MSE can have high variability for smaller sample sizes, since it is dependent on which observations are included/excluded.
 
-**Q6:** See the code below for performing model selection with `bestglm()` based on AIC. What kind of contrast is used to represent `cut`, `color` and `clarity`? Write down the final best model and explain what you can interpret from the model.  
-**Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).  
+**Q6:** See the code below for performing model selection with `bestglm()` based on AIC. What kind of contrast is used to represent `cut`, `color` and `clarity`? Write down the final best model and explain what you can interpret from the model.
 
-```{r,eval=FALSE}
+```{r}
 library(bestglm)
-ds=as.data.frame(within(dtrain,{
-  y=logprice    # setting reponse
-  logprice=NULL # not include as covariate
-  price=NULL    # not include as covariate
-  carat=NULL    # not include as covariate
-  }))
-fit=bestglm(Xy=ds, IC="AIC")$BestModel
+ds <- as.data.frame(
+  within(
+    dtrain,
+    {
+      y = logprice    # setting response
+      logprice = NULL # not include as covariate
+      price = NULL    # not include as covariate
+      carat = NULL    # not include as covariate
+    }
+  )
+)
+
+fit <- bestglm(Xy=ds, IC="AIC")$BestModel
 summary(fit)
 ```
 
-**Q8:** Build a model matrix for the covariates `~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1`. What is the dimension of this matrix?  
-**Q9:** Fit a lasso regression to the diamond data with `logprice` as the response and the model matrix given in Q8. How did you find the value to be used for the regularization parameter?  
-**Q10:** Calculate and report the MSE of the test set (on the scale of `logprice`).  
+From the summary we can see that `cut`, `color`, and `clarity` are *dummy coded* with respectively `cutFair`, `colorD`, and `clarityI1` as reference categories.
 
-**Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.  
-**Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.  
-**Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.  
-**Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).  
+The final best model is `logprice ~ 1 + logcarat cut + color + clarity + xx`, or in mathematical form
 
-**Q15:** Explain the motivation behind bagging, and how bagging differs from random forest? What is the role of bootstrapping?  
-**Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?  
-**Q17:** Boosting is a popular method. What is the main difference between random forest and boosting?  
-**Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).   
-**Q19:** Make a variable importance plot and comment on the plot. Calculate and report the MSE of the test set (on the scale of `logprice`).  
+$$
+\texttt{logprice}_i
+= \\
+  \beta_0 \\
+  + \beta_1 \cdot x_{i, \texttt{logcarat}} \\
+  + \beta_2 \cdot x_{i, \texttt{cutGood}} + ... + \beta_5 \cdot x_{i, \texttt{cutIdeal}} \\
+  + \beta_6 \cdot x_{i, \texttt{colorE}} + ... + \beta_{11} \cdot x_{i, \texttt{colorJ}} \\
+  + \beta_{12} \cdot x_{i, \texttt{claritySI2}} + ... + \beta_{18} \cdot x_{i, \texttt{clarityIF}} \\
+  + \beta_{19} \cdot x_{\texttt{xx}} \\
+  + \epsilon_i.
+$$
+
+A `price` prediction for the covariate vector $\boldsymbol{x}_0$ is constructed in the following manner
+
+$$
+\widehat{\texttt{logprice}}
+=
+\boldsymbol{\hat{\beta}}^T \boldsymbol{x}_0 \\
+\implies
+\widehat{\texttt{price}}
+=
+10^{\boldsymbol{\hat{\beta}}^T \boldsymbol{x}_0} = 10^{\beta_0} \cdot \prod_{i = 1}^{19} 10^{\beta_i \boldsymbol{x}_{0,i}}.
+$$
+
+The tenth power of the regression coefficients are therefore of interest.
+
+```{r}
+library(kableExtra)
+beta_hat <- coefficients(fit)
+10^beta_hat %>% kable(col.names = "$10^{\\hat{\\beta}_i}$")
+```
+
+Several things can be interpreted from this. The `(Intercept)` represents a 1 carat diamond, i.e. 0 `logcarat`, with a *fair* cut, *D* color category, and *I1* clarity category. Such a diamond is predicted to cost $\simeq$ \$968 USD.
+All other covariates must be interpreted *relative to* this "reference diamond". For instance, since $10^{\hat{\beta}_{\texttt{cutIdeal}}} \approx 1.135$, we would expect a diamond with an *ideal cut* to cost 13.5\% more than the "reference diamond", all other properties being equal.
+
+**Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).
+
+
+**Q8:** Build a model matrix for the covariates `~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1`. What is the dimension of this matrix?
+**Q9:** Fit a lasso regression to the diamond data with `logprice` as the response and the model matrix given in Q8. How did you find the value to be used for the regularization parameter?
+**Q10:** Calculate and report the MSE of the test set (on the scale of `logprice`).
+
+**Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.
+**Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
+**Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
+**Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).
+
+**Q15:** Explain the motivation behind bagging, and how bagging differs from random forest? What is the role of bootstrapping?
+**Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?
+**Q17:** Boosting is a popular method. What is the main difference between random forest and boosting?
+**Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).
+**Q19:** Make a variable importance plot and comment on the plot. Calculate and report the MSE of the test set (on the scale of `logprice`).
 
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
 
@@ -154,7 +201,7 @@ summary(fit)
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
 
-**Q23:** How many principal components are needed to explain 80% of the total variance in ${\bf Z}$? Why is `sum(pca$sdev^2)=p`?  
+**Q23:** How many principal components are needed to explain 80% of the total variance in ${\bf Z}$? Why is `sum(pca$sdev^2)=p`? 
 
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
