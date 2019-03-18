@@ -177,8 +177,8 @@ All other covariates must be interpreted *relative to* this "reference diamond".
 **Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).
 
 ```{r}
-test_mse <- mean((dtest$logprice - predict.lm(fit, dtest))^2)
-test_mse
+best_subset_test_mse <- mean((dtest$logprice - predict.lm(fit, dtest))^2)
+print(best_subset_test_mse)
 ```
 
 The test MSE is $\simeq 0.0036$.
@@ -251,8 +251,8 @@ lasso_model <- cv.out$glmnet.fit
 chosen_lambda <- cv.out$lambda.1se
 xtest <- model.matrix(lasso_formula, data = dtest)
 predictions <- predict(lasso_model, s = chosen_lambda, newx = xtest)
-test_mse <- mean((dtest$logprice - predictions) ^ 2)
-print(test_mse)
+lasso_test_mse <- mean((dtest$logprice - predictions) ^ 2)
+print(lasso_test_mse)
 ```
 
 The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
@@ -438,6 +438,22 @@ We have a test MSE of $\approx 2.36 \cdot 10^{-3}$.
 
 
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
+
+We can now compare the test MSE scores of the four previous models.
+
+```{r}
+test_mse <- tibble(
+  best_subset = best_subset_test_mse,
+  lasso = lasso_test_mse,
+  tree = tree_test_mse,
+  random_forest = random_forest_test_mse
+)
+t(test_mse) %>% kable(col.names = c("Test MSE"))
+```
+
+We can see that the random forest has performed the best on the test set.
+The random forest is difficult to interpret though, especially since the two importance plots do not coincide.
+The tree model is much simpler to interpret, it condenses all the information down to just two covariates, `xx` and `yy`, making it easy to print out on a piece of paper and taking with you to the Jeweler.
 
 
 # Problem 2: Unsupervised learning [3 points]
