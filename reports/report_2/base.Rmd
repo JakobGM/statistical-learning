@@ -258,6 +258,9 @@ The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
 
 
 **Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.
+
+A _greedy_ approach means that the apparently best choice is taken at any one time, not considering the possibility of a suboptimal choice may be taken in order to achieve an *overall* better result further down the road. Once a decision has been made, no backtracking is performed, and the choice is "locked in".
+
 **Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
 **Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).
