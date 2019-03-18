@@ -243,6 +243,20 @@ The chosen regularization parameter is therefore $\lambda \approx 5.2 \cdot 10^{
 
 **Q10:** Calculate and report the MSE of the test set (on the scale of `logprice`).
 
+We can now calculate the test MSE.
+
+```{r}
+lasso_model <- cv.out$glmnet.fit
+chosen_lambda <- cv.out$lambda.1se
+xtest <- model.matrix(lasso_formula, data = dtest)
+predictors <- predict(lasso_model, s = chosen_lambda, newx = xtest)
+test_mse <- mean((dtest$logprice - predictors) ^ 2)
+print(test_mse)
+```
+
+The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
+
+
 **Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.
 **Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
