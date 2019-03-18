@@ -297,6 +297,15 @@ We choose $(j, s)$ recursively without backtracking (thus greedy), until some st
 The stopping criterion can the number of members of the resulting region being small enough, or when the reduction in RSS is smaller than some threshold.
 
 **Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
+
+Yes, regression trees can handle mixed features, which is one of its advantages.
+Instead of deciding node traversal by a "less than" operator, as in the numerical case, a decision can be made by a "containment" operator in the categorical case. For instance if $x_j$ is a categorical covariate representing if a patient is smoking (coded as $1$) or not (coded as $0$), a splitting criterion could be
+
+\begin{gather*}
+  R_1 = \{ x~|~x_j = 1 \} \\
+  R_2 = \{ x~|~x_j = 0 \}.
+\end{gather*}
+
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
 **Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).
 
