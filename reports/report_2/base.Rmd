@@ -189,8 +189,9 @@ The test MSE is $\simeq 0.0036$.
 We build the design matrix by using the `model.matrix()` function.
 
 ```{r}
+lasso_formula <- ~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1
 model_matrix <- model.matrix(
-  ~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1,
+  lasso_formula,
   data = dtrain
 )
 ```
@@ -249,8 +250,8 @@ We can now calculate the test MSE.
 lasso_model <- cv.out$glmnet.fit
 chosen_lambda <- cv.out$lambda.1se
 xtest <- model.matrix(lasso_formula, data = dtest)
-predictors <- predict(lasso_model, s = chosen_lambda, newx = xtest)
-test_mse <- mean((dtest$logprice - predictors) ^ 2)
+predictions <- predict(lasso_model, s = chosen_lambda, newx = xtest)
+test_mse <- mean((dtest$logprice - predictions) ^ 2)
 print(test_mse)
 ```
 
@@ -260,6 +261,40 @@ The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
 **Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.
 
 A _greedy_ approach means that the apparently best choice is taken at any one time, not considering the possibility of a suboptimal choice may be taken in order to achieve an *overall* better result further down the road. Once a decision has been made, no backtracking is performed, and the choice is "locked in".
+
+The idea of a regression tree is to take $n$ observation pairs $(\boldsymbol{x}_i, Y_i)$ and separating them into $J$ partitions of the predictor space, $R_1, ..., R_J$.
+Predictions are made by identifying the region which a predictor falls within and then taking the average response of all the pairs of that region.
+
+A prediction, $\hat{f}_{R_j}$, for $x_0$ belonging to the region $R_j$, is therefore calculated as
+
+$$
+\hat{f}_{R_j} = \frac{1}{|R_j|} \sum_{i: x_i \in R_j} y_i,
+$$
+
+where $|R_j|$ is the number of observed pairs placed within region $R_j$.
+
+Now a question remains; how to construct these regions? We use a greedy approach called *recursive binary splitting*. Define the parametrized regions
+
+\begin{gather*}
+  R_1(j, s) := \{x~|~x_j < s\}, \\
+  R_2(j, s) := \{x~|~x_j \geq s\}.
+\end{gather*}
+
+We want to pick the predictor $j$ and split-off point $s$ that minimizes the sum of the residual sum of squares of both sub-partition, i.e.
+
+$$
+(j, s)
+=
+\underset{(j, s)}{\text{argmin}}
+\left\{
+\sum_{i: x_i \in R_1(j, s)} (y_i - \hat{f}_{R_1(j, s)})^2
++
+\sum_{i: x_i \in R_2(j, s)} (y_i - \hat{f}_{R_2(j, s)})^2
+\right\}
+$$
+
+We choose $(j, s)$ recursively without backtracking (thus greedy), until some stopping criterion is reached.
+The stopping criterion can the number of members of the resulting region being small enough, or when the reduction in RSS is smaller than some threshold.
 
 **Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
