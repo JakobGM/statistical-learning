@@ -185,6 +185,30 @@ The test MSE is $\simeq 0.0036$.
 
 
 **Q8:** Build a model matrix for the covariates `~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1`. What is the dimension of this matrix?
+
+We build the design matrix by using the `model.matrix()` function.
+
+```{r}
+model_matrix <- model.matrix(
+  ~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1,
+  data = dtrain
+)
+```
+
+Since we use dummy coding of categorical covariates, each covariate with $c$ categories result in $c - 1$ columns in the design matrix.
+But in this case, we have no intercept, so one of the categorical covariates will have $c$ columns, one for each covariate.
+We have 3 categorical variables, with 5, 8, and 7 categories. This results in 17 columns, instead of 16 if we had an intercept in our model.
+In addition, we have 6 continuous covariates.
+All together this results in 24 columns in the design matrix and $n$ rows, where $n$ equals the number of observations, in this case $5000$.
+To confirm, we can check
+
+```{r}
+dim(model_matrix)
+```
+
+This coincides.
+
+
 **Q9:** Fit a lasso regression to the diamond data with `logprice` as the response and the model matrix given in Q8. How did you find the value to be used for the regularization parameter?
 **Q10:** Calculate and report the MSE of the test set (on the scale of `logprice`).
 
