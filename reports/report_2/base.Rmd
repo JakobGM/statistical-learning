@@ -381,6 +381,9 @@ $$
 
 The variance of the estimator is thus inversely proportional to the number of independent samples $B$. This effect can be *simulated* by generating $B$ bootstrap data sets; they are not completely independent but is better than nothing.
 
+Bagging is not the end all solution, however. If there is a really strong predictor in the training set, then this predictor will end up being used in the first split in all the bootstrap replicated trees.
+This results in the trees becoming highly correlated, and we lose much of the variance reduction which we expect from the averaging of the trees. A *random forest* aims to solve this by randomly removing a fraction of the covariates in each split, instead of using *all* the covariates as we do in *bagging*. This fraction is often set to $m \approx \sqrt{p}$ for classification trees, and $m = p / 3$ for regression trees.
+
 **Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?
 **Q17:** Boosting is a popular method. What is the main difference between random forest and boosting?
 **Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).
