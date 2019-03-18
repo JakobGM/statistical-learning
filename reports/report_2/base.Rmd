@@ -418,6 +418,25 @@ We have here chosen `mtry = 24 / 3 = 8` since we have a continuous response and 
 
 **Q19:** Make a variable importance plot and comment on the plot. Calculate and report the MSE of the test set (on the scale of `logprice`).
 
+In order to interpret this *ensemble method* we can make a variable importance plot.
+
+```{r}
+varImpPlot(random_forest)
+```
+
+We can see that `yy` is decidedly best at decreasing the total node impurity, while `clarity` and `color` are best when using the alternative random out-of-bag importance method. There is no overlap between the 2 best covariates in each method.
+
+We can now calculate the MSE for the test set on the scale of `logprice`.
+
+```{r}
+random_forest_predictions <- predict(random_forest, dtest)
+random_forest_test_mse <- mean((random_forest_predictions - dtest$logprice)^2)
+print(random_forest_test_mse)
+```
+
+We have a test MSE of $\approx 2.36 \cdot 10^{-3}$.
+
+
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
 
 
