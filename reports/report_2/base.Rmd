@@ -4,8 +4,14 @@ title: "Compulsory exercise 2: Group XYZ"
 author: "Martinussen, Jakob Gerhard & Wilson, Alm"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
-  html_document
-  #pdf_document
+  pdf_document:
+    latex_engine: xelatex
+header-includes:
+  - \usepackage{fontspec}
+  - \setmonofont{DejaVu Sans Code}
+  - \makeatletter
+  - \def\verbatim@nolig@list{}
+  - \makeatother
 ---
 
 ```{r setup, include=TRUE}
