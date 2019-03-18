@@ -359,6 +359,28 @@ The test MSE is $\approx 1.72 \cdot 10^{-2}$, a whole order of magnitude greater
 
 
 **Q15:** Explain the motivation behind bagging, and how bagging differs from random forest? What is the role of bootstrapping?
+
+A problem with decision trees is that they often portray a large amount of variance, since small changes in the predictors will often result in very different trees. One solution to this problem is *bootstrap aggregation*, more commonly known as *bagging*.
+
+The idea is to draw a sufficiently large amount, $B$, bootstrap replicates from the training set and fit a tree, $\hat{f}_{b}(\boldsymbol{x})$, for every single replicate, $X_b$.
+The resulting predictor, $\hat{f}_{\text{avg}}(\boldsymbol{x})$ is the *average* of all those trees,
+
+$$
+\hat{f}_{\text{avg}}(\boldsymbol{x}) = \frac{1}{B} \sum_{b = 1}^{B} \hat{f}_b (\boldsymbol{x}).
+$$
+
+The motivation is this, assume that we have $B$ i.i.d. observations of the random variable $X$ with mean $\mu$ and variance $\sigma^2$. The unbiased mean estimator, $\bar{X} = \frac{1}{B} \sum_{b = 1}^B X_b$, has a variance of
+
+$$
+Var(\bar{X})
+=
+\mathrm{Var}\left( \frac{1}{B} \sum_{b = 1}^B X_b \right)
+=
+\frac{1}{B^2} \sum_{b = 1}^B \mathrm{Var}(X_b) = \frac{\sigma^2}{B}
+$$
+
+The variance of the estimator is thus inversely proportional to the number of independent samples $B$. This effect can be *simulated* by generating $B$ bootstrap data sets; they are not completely independent but is better than nothing.
+
 **Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?
 **Q17:** Boosting is a popular method. What is the main difference between random forest and boosting?
 **Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).
