@@ -312,8 +312,9 @@ We now fit a full regression tree for the diamond data.
 
 ```{r}
 library(tree)
+diamond_formula <- logprice~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1
 full_tree <- tree(
-  logprice~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1,
+  diamond_formula,
   data = dtrain
 )
 ```
@@ -400,6 +401,21 @@ Boosting is different in that it is an *iterative* or *sequential* method. It fi
 After this, a *new* tree is fitted on the residuals. The original tree is updated by adding a shrunken version of the new tree. This is repeated $B$ times, always fitting new trees on the new residuals.
 
 **Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).
+
+We fit a random forest with the same formula.
+
+```{r, cache = TRUE}
+library(randomForest)
+random_forest <- randomForest(
+  diamond_formula,
+  data = dtrain,
+  mtry = dim(model_matrix)[2] / 3,
+  importance = TRUE
+)
+```
+
+We have here chosen `mtry = 24 / 3 = 8` since we have a continuous response and this is a regression tree. With other words, we are using the rule-of-thumb $m = p / 3$.
+
 **Q19:** Make a variable importance plot and comment on the plot. Calculate and report the MSE of the test set (on the scale of `logprice`).
 
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
