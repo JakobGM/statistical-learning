@@ -322,18 +322,22 @@ The decision tree can be visualized together with the partition space.
 We will transform the `logprice` to `price` for easier interpretability.
 
 ```{r}
+# For deep copy of data-structures
+library(rlang)
+
 # Plot side-by-side
 par(mfcol = c(1, 2))
 
 # Convert fitted values from logprice to price
-full_tree$frame$yval <- 10 ^ full_tree$frame$yval
+plot_tree <- duplicate(full_tree, shallow = FALSE)
+plot_tree$frame$yval <- 10 ^ plot_tree$frame$yval
 
 # Plot the decision tree together with decision criteria
-plot(full_tree, type = "proportional")
-text(full_tree, pretty = 1, cex = 0.5)
+plot(plot_tree, type = "proportional")
+text(plot_tree, pretty = 1, cex = 0.5)
 
 # Plot the partitioning of the xx-yy plane
-partition.tree(full_tree, cex = 0.4)
+partition.tree(plot_tree, cex = 0.4)
 ```
 
 The length of the edges in the tree on the left hand side are proportional to the reduction in RSS.
@@ -342,6 +346,17 @@ Lastly, it is interesting that solely $\texttt{xx}$ and $\texttt{yy}$ are chosen
 
 
 **Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).
+
+We can now calculate the test MSE on the scale of `logprice`.
+
+```{r}
+tree_predictions <- predict(full_tree, dtest)
+tree_test_mse <- mean((tree_predictions - dtest$logprice)^2)
+print(tree_test_mse)
+```
+
+The test MSE is $\approx 1.72 \cdot 10^{-2}$, a whole order of magnitude greater than the lasso model fitted earlier. It should be noted, though, that this model is *substantially* less complex than the lasso model.
+
 
 **Q15:** Explain the motivation behind bagging, and how bagging differs from random forest? What is the role of bootstrapping?
 **Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?
