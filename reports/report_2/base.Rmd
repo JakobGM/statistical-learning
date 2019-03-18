@@ -32,7 +32,7 @@ dtest <- all$dtest
 
 **Q1**: Would you choose `price` or `logprice` as response variable? Justify your choice. Next, plot your choice of response pairwise with `carat`, `logcarat`, `color`, `clarity` and `cut`. Comment.
 
-We choose `logprice` as the response variable, since we postulate that diamant qualities have a *multiplicative* effect on the price, not *additive*. A logarithmic response will result in such an interpretation of the regression coefficients. We now create the plots as instructed.
+We choose `logprice` as the response variable, since we postulate that diamond qualities have a *multiplicative* effect on the price, not *additive*. A logarithmic response will result in such an interpretation of the regression coefficients. We now create the plots as instructed.
 
 ```{r}
 library(ggplot2)
@@ -100,7 +100,7 @@ $$
 
 which is the definition of KNN-regression. Here $\mathcal{N}_0$ is the index set for the $K$ nearest neighbours to $x_0$, measured in Euclidean distance.
 
-**Q4:** Describe how you can perform model selection in regression with AIC as criterion.  
+**Q4:** Describe how you can perform model selection in regression with AIC as criterion.
 
 The Akaike Information Criterion (AIC) is defined as
 
@@ -504,7 +504,7 @@ plot(1:dim(X)[2],pca$rotation[,1],type="l",xlab="genes",ylab="weight",main="Firs
 
 **Q26:**: Perform hierarchical clustering with Euclidean distance and average linkage on the scaled gene expression in `Z`. Observe where our samples labelled as K562, MCF7 and `UNKNOWN` are placed in the dendrogram. Which conclusions can you draw from this?
 
-**Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on thefirst 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
+**Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on the first 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
 
 ```{r}
 library(pheatmap)
@@ -534,7 +534,7 @@ For each method you
 * clearly write out the model and model assumptions for the method
 * explain how any tuning parameters are chosen or model selection is performed
 * report (any) insight into the interpretation of the fitted model
-* evaluate the model using the test data, and report misclassifiation rate (cut-off 0.5 on probability) and plot ROC-curves and give the AUC (for method where class probabilities are given).
+* evaluate the model using the test data, and report misclassification rate (cut-off 0.5 on probability) and plot ROC-curves and give the AUC (for method where class probabilities are given).
 
 **Q30:** Conclude with choosing a winning method, and explain why you mean that this is the winning method.
 
