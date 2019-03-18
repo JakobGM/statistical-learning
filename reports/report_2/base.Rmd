@@ -307,6 +307,40 @@ Instead of deciding node traversal by a "less than" operator, as in the numerica
 \end{gather*}
 
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
+
+We now fit a full regression tree for the diamond data.
+
+```{r}
+library(tree)
+full_tree <- tree(
+  logprice~logcarat+cut+clarity+color+depth+table+xx+yy+zz-1,
+  data = dtrain
+)
+```
+
+The decision tree can be visualized together with the partition space.
+We will transform the `logprice` to `price` for easier interpretability.
+
+```{r}
+# Plot side-by-side
+par(mfcol = c(1, 2))
+
+# Convert fitted values from logprice to price
+full_tree$frame$yval <- 10 ^ full_tree$frame$yval
+
+# Plot the decision tree together with decision criteria
+plot(full_tree, type = "proportional")
+text(full_tree, pretty = 1, cex = 0.5)
+
+# Plot the partitioning of the xx-yy plane
+partition.tree(full_tree, cex = 0.4)
+```
+
+The length of the edges in the tree on the left hand side are proportional to the reduction in RSS.
+We can see that the first split, $\texttt{yy} < 5.665$, by far reduces the RSS the most. The tree algorithm also decides that *above* this split, only $\texttt{yy}$ matters, and $\texttt{xx}$ is ignored. The greater $\texttt{xx}$ and $\texttt{yy}$ is, the greater the price prediction.
+Lastly, it is interesting that solely $\texttt{xx}$ and $\texttt{yy}$ are chosen, all of the other covariates have been discarded. Using this model as a human is quite easy, as there are only two covariates to consider.
+
+
 **Q14:** Calculate and report the MSE of the test set (on the scale of `logprice`).
 
 **Q15:** Explain the motivation behind bagging, and how bagging differs from random forest? What is the role of bootstrapping?
