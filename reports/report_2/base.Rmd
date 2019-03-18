@@ -404,8 +404,11 @@ After this, a *new* tree is fitted on the residuals. The original tree is update
 
 We fit a random forest with the same formula.
 
-```{r, cache = TRUE}
+```{r, include = FALSE}
 library(randomForest)
+```
+
+```{r, cache = TRUE}
 random_forest <- randomForest(
   diamond_formula,
   data = dtrain,
