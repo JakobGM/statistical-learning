@@ -515,16 +515,60 @@ pheatmap(pca$x[,1:npcs],scale="none",cluster_col=FALSE,cluster_row=TRUE,clusteri
 # Problem 3: Flying solo with diabetes data [6 points]
 
 ```{r}
-flying=dget("flying.dd")
-ctrain=flying$ctrain
-ctest=flying$ctest
+flying <- dget("flying.dd")
+ctrain <- flying$ctrain
+ctest <- flying$ctest
 ```
 
 **Q28:** Start by getting to know the _training data_, by producing summaries and plots. Write a few sentences about what you observe and include your top 3 informative plots and/or outputs.
 
+```{r}
+# library(GGally)
+# ggpairs(ctrain)
+```
+
 **Q29:** Use different methods to analyse the data. In particular use 
 
 * one method from Module 4: Classification
+
+```{r}
+library(magrittr)  # For use_series()
+library(caret)  # For confusionMatrix()
+library(e1071)  # For ConfusionMatrix()
+library(purrr)  # For map_dbl()
+
+# Create bestglm-compliant dataframe
+Xy <- as.data.frame(
+  within(
+    ctrain,
+    {
+      y = diabetes    # setting response
+      diabetes = NULL # not include as covariate
+    }
+  )
+)
+
+# Logistic model selection based on AIC
+logistic_model <- bestglm(
+    Xy = Xy,
+    family = binomial,
+    IC = "AIC"
+  ) %>%
+  use_series(BestModel)
+
+# Create diabetes predictions
+logistic_predictions <- predict(logistic_model, ctest, type = "response") %>%
+  map_dbl(~ .x > 0.5) %>%
+  as.factor()
+
+# Create confusion matrix
+logistic_confmat <- confusionMatrix(
+  data = logistic_predictions,
+  reference = ctest$diabetes %>% as.factor()
+)
+print(logistic_confmat)
+```
+
 * one method from Module 8: Trees (and forests)
 * one method from Module 9: Support vector machines and, finally
 * one method from Module 11: Neural networks
