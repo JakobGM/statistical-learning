@@ -570,6 +570,42 @@ print(logistic_confmat)
 ```
 
 * one method from Module 8: Trees (and forests)
+
+```{r}
+xgb_train_data <- xgb.DMatrix(
+  as.matrix(ctrain %>% dplyr::select(-diabetes)),
+  label=ctrain$diabetes
+)
+xgb_model <- xgboost(
+  data = xgb_data,
+  nrounds = 10,
+  objective = "binary:logistic"
+)
+
+xgb_test_data <- xgb.DMatrix(
+  as.matrix(ctest %>% dplyr::select(-diabetes)),
+  label=ctest$diabetes
+)
+
+xgb_predictions <- predict(
+    xgb_model,
+    newdata = xgb_test_data,
+    type = "response"
+  ) %>%
+  map_dbl(~ .x > 0.5) %>%
+  as.factor()
+
+xgb_confmat <- confusionMatrix(
+  data = xgb_predictions,
+  reference = ctest$diabetes %>% as.factor()
+)
+
+print(xgb_confmat)
+
+importance_frame <- xgb.importance(colnames(xgb_train_data), model = xgb_model)
+xgb.plot.importance(importance_frame)
+```
+
 * one method from Module 9: Support vector machines and, finally
 * one method from Module 11: Neural networks
 
