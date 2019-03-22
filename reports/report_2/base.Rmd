@@ -604,12 +604,13 @@ print(logistic_confmat)
 * one method from Module 8: Trees (and forests)
 
 ```{r}
+library(xgboost)
 xgb_train_data <- xgb.DMatrix(
   as.matrix(ctrain %>% dplyr::select(-diabetes)),
   label=ctrain$diabetes
 )
 xgb_model <- xgboost(
-  data = xgb_data,
+  data = xgb_train_data,
   nrounds = 10,
   objective = "binary:logistic"
 )
