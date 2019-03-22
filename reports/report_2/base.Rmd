@@ -569,23 +569,25 @@ Since the principal component analysis is performed on the *standardized* covari
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
 ```{r}
-plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", pch=pchsamples, col=colsamples)
-legend("bottomright", legend = colsvsnames[,2], cex=0.55, col=cols, pch = pch.vec)
-```
+plot_pca <- function(first, second) {
+  plot(
+    pca$x[,first],
+    pca$x[,second],
+    xlab = paste("PC", first, sep = ""),
+    ylab = paste("PC", second, sep = ""),
+    pch = pchsamples,
+    col = colsamples
+  )
+  legend(
+    "bottomright",
+    legend = colsvsnames[,2],
+    cex = 0.55,
+    col = cols,
+    pch = pch.vec
+  )
+}
 
-```{r}
-library(ggplot2)
-pca_data <- pca$x %>% as_tibble()
-
-our_colors <- as.character(colsvsnames[,1])
-names(our_colors) <- our_colors
-
-pca_data %>%
-  ggplot() +
-  geom_point(
-    aes(x = PC1, y = PC2, color = colsamples)
-  ) + 
-  scale_color_manual(values = our_colors, labels = colsvsnames[,2])
+plot_pca(1, 2)
 ```
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
