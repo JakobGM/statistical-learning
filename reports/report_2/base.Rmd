@@ -531,6 +531,41 @@ Since $\boldsymbol{X}$ and $\boldsymbol{Z}$ are $n \times p = 6380 \times 64$ ma
 
 **Q23:** How many principal components are needed to explain 80% of the total variance in ${\boldsymbol{Z}}$? Why is `sum(pca$sdev^2)=p`? 
 
+If we transform $\boldsymbol{Z}$ into the first $M$ principal components, the fraction of the original variance that is kept is
+
+$$
+  R^2
+  =
+  \frac{
+    \sum_{i = 1}^M \lambda_i
+  }
+  {
+    \sum_{j = 1}^p \lambda_j
+  }
+$$
+
+We can calculate these values by retrieving `pca$sdev`
+
+```{r}
+total_variance <- sum(pca$sdev^2)
+sprintf("Total variance: %.0f", total_variance)
+
+cummulative_variance <- cumsum(pca$sdev^2)
+proportional_variance <- cummulative_variance / total_variance
+sufficient_components <- proportional_variance %>%
+  is_weakly_greater_than(0.8) %>%
+  which() %>%
+  first()
+sprintf(
+  "80 percent of variance is explained by the first %.0f principal components",
+  sufficient_components
+)
+```
+
+We can explain 80\% of the variance with the 32 first principal components.
+Since the principal component analysis is performed on the *standardized* covariance matrix where the variance for each variable has been scaled to $1$ the total variance becomes $\sum_{i = 1}^p 1 = p$.
+
+
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
 ```{r}
