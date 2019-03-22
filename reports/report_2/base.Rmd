@@ -468,37 +468,37 @@ The tree model is much simpler to interpret, it condenses all the information do
 
 # Problem 2: Unsupervised learning [3 points]
 
-**Q21:** What is the definition of a principal component score, and how is the score related to the eigenvectors of the matrix \({\hat {\bf R}}\). 
+**Q21:** What is the definition of a principal component score, and how is the score related to the eigenvectors of the matrix \({\hat {\boldsymbol R}}\). 
 
-Given the estimated covariance matrix \( \hat{\bf R} \), we define its $m$-th principal component, $\bf{W}_m \in \mathbb{R}^{p \times 1}$, as
+Given the estimated covariance matrix \( \hat{\boldsymbol R} \), we define its $m$-th principal component, $\boldsymbol{W}_m \in \mathbb{R}^{p \times 1}$, as
 
 \begin{equation}
   \label{eq:decomposition}
-  \bf{W}_m
+  \boldsymbol{W}_m
   =
-  \hat{\bf{R}} \bf{\phi}_m
+  \hat{\boldsymbol{R}} \boldsymbol{\phi}_m
   =
-  \sum_{j = 1}^p \phi_{jm} \hat{\bf R}_j,
+  \sum_{j = 1}^p \phi_{jm} \hat{\boldsymbol R}_j,
   ~~~~\text{subject to}~~~~||\phi_{m}||_{2} = 1
 \end{equation}
 
-We want $\mathrm{Var}(\bf{W}_i) \geq \mathrm{Var}(\bf{W}_{i + 1})$ and $\bf{W}_i \perp \bf{W}_j$ given $i \neq j$. The intent here is to linearly decompose the estimated covariance matrix into uncorrelated columns ordered by their contribution to the overall variance in the data. That way we can transform the variables into a space of lower dimension while retaining the greatest possible amount of information.
+We want $\mathrm{Var}(\boldsymbol{W}_i) \geq \mathrm{Var}(\boldsymbol{W}_{i + 1})$ and $\boldsymbol{W}_i \perp \boldsymbol{W}_j$ given $i \neq j$. The intent here is to linearly decompose the estimated covariance matrix into uncorrelated columns ordered by their contribution to the overall variance in the data. That way we can transform the variables into a space of lower dimension while retaining the greatest possible amount of information.
 
-Since $\hat{\bf{R}}$ is a non-negative definite matrix it has an eigen-decomposition
+Since $\hat{\boldsymbol{R}}$ is a non-negative definite matrix it has an eigen-decomposition
 
 $$
-\hat{\bf{R}} = \bf{C} \Lambda \bf{C}^{-1},
+\hat{\boldsymbol{R}} = \boldsymbol{C} \Lambda \boldsymbol{C}^{-1},
 $$
 
-where $\Lambda = \text{diag}(\lambda_1, ..., \lambda_p)$ is the diagonal eigenvalue matrix in \textit{decreasing} order and $\bf{C}$ is a matrix with the \textit{eigenvectors} of $\hat{\bf R}$ for its columns.
+where $\Lambda = \text{diag}(\lambda_1, ..., \lambda_p)$ is the diagonal eigenvalue matrix in \textit{decreasing} order and $\boldsymbol{C}$ is a matrix with the \textit{eigenvectors} of $\hat{\boldsymbol R}$ for its columns.
 
-It can be shown that $\bf{\phi} = [\phi_1, ..., \phi_p]^T = \bf{C}$ solves equation \eqref{eq:decomposition}.
+It can be shown that $\boldsymbol{\phi} = [\phi_1, ..., \phi_p]^T = \boldsymbol{C}$ solves equation \eqref{eq:decomposition}.
 
 The *principal component scores* are the new values we attain in this transformed space.
 The $j$th principal component score for covariate $i$ is therefore
 
 $$
-  \bf{W}_{ij} = (\bf{W} \bf{C})_{ij}.
+  \boldsymbol{W}_{ij} = (\boldsymbol{W} \boldsymbol{C})_{ij}.
 $$
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
@@ -524,12 +524,12 @@ pca <- prcomp(Z)
 plot(1:dim(X)[2], pca$rotation[,1], type="l", xlab="genes", ylab="weight")
 ```
 
-Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\bf{R}}$.
-With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\bf{R}$ in order to get the first principal component, which explains the most variance of all the principal components.
+Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\boldsymbol{R}}$.
+With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\boldsymbol{R}}$ in order to get the first principal component, which explains the most variance of all the principal components.
 
-Since $\bf{X}$ and $\bf{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
+Since $\boldsymbol{X}$ and $\boldsymbol{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
 
-**Q23:** How many principal components are needed to explain 80% of the total variance in ${\bf Z}$? Why is `sum(pca$sdev^2)=p`? 
+**Q23:** How many principal components are needed to explain 80% of the total variance in ${\boldsymbol{Z}}$? Why is `sum(pca$sdev^2)=p`? 
 
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
