@@ -573,6 +573,21 @@ plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", pch=pchsamples, col=colsample
 legend("bottomright", legend = colsvsnames[,2], cex=0.55, col=cols, pch = pch.vec)
 ```
 
+```{r}
+library(ggplot2)
+pca_data <- pca$x %>% as_tibble()
+
+our_colors <- as.character(colsvsnames[,1])
+names(our_colors) <- our_colors
+
+pca_data %>%
+  ggplot() +
+  geom_point(
+    aes(x = PC1, y = PC2, color = colsamples)
+  ) + 
+  scale_color_manual(values = our_colors, labels = colsvsnames[,2])
+```
+
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
 
 **Q26:**: Perform hierarchical clustering with Euclidean distance and average linkage on the scaled gene expression in `Z`. Observe where our samples labelled as K562, MCF7 and `UNKNOWN` are placed in the dendrogram. Which conclusions can you draw from this?
