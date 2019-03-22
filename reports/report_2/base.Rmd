@@ -503,33 +503,39 @@ $$
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
 
+```{r, fig.cap = "\\label{fig:eigenvector} First eigenvector."}
+library(ElemStatLearn)
+X <- t(nci)  # n times p matrix
+table(rownames(X))
+
+ngroups <- length(table(rownames(X)))
+cols <- rainbow(ngroups)
+cols[c(4, 5, 7, 8, 14)] <- "black"
+pch.vec <- rep(4, 14)
+pch.vec[c(4, 5, 7, 8, 14)] <- 15:19
+
+colsvsnames <- cbind(cols, sort(unique(rownames(X))))
+colsamples <- cols[match(rownames(X), colsvsnames[,2])] 
+pchvsnames <- cbind(pch.vec, sort(unique(rownames(X))))
+pchsamples <- pch.vec[match(rownames(X), pchvsnames[,2])]
+
+Z <- scale(X)
+pca <- prcomp(Z)
+plot(1:dim(X)[2], pca$rotation[,1], type="l", xlab="genes", ylab="weight")
+```
+
+Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\bf{R}}$.
+With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\bf{R}$ in order to get the first principal component, which explains the most variance of all the principal components.
+
+Since $\bf{X}$ and $\bf{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
+
 **Q23:** How many principal components are needed to explain 80% of the total variance in ${\bf Z}$? Why is `sum(pca$sdev^2)=p`? 
 
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
-
 ```{r}
-library(ElemStatLearn)
-X=t(nci) #n times p matrix
-table(rownames(X))
-ngroups=length(table(rownames(X)))
-cols=rainbow(ngroups)
-cols[c(4,5,7,8,14)] = "black"
-pch.vec = rep(4,14)
-pch.vec[c(4,5,7,8,14)] = 15:19
-
-colsvsnames=cbind(cols,sort(unique(rownames(X))))
-colsamples=cols[match(rownames(X),colsvsnames[,2])] 
-pchvsnames=cbind(pch.vec,sort(unique(rownames(X))))
-pchsamples=pch.vec[match(rownames(X),pchvsnames[,2])]
-
-Z=scale(X)
-
-pca=prcomp(Z)
-plot(pca$x[,1],pca$x[,2],xlab="PC1",ylab="PC2",pch=pchsamples,col=colsamples)
-legend("bottomright",legend = colsvsnames[,2],cex=0.55,col=cols,pch = pch.vec)
-
-plot(1:dim(X)[2],pca$rotation[,1],type="l",xlab="genes",ylab="weight",main="First eigenvector")
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", pch=pchsamples, col=colsamples)
+legend("bottomright", legend = colsvsnames[,2], cex=0.55, col=cols, pch = pch.vec)
 ```
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
