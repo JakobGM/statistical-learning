@@ -510,7 +510,8 @@ $$
 $$
 
 We know that $\text{rank}(\hat{\mat{R}}) = \text{min}(p,~n - 1)$, which we will denote as $r$.
-Since $\hat{\mat{R}}$ is a non-negative definite matrix it is guaranteed to have an eigendecomposition, we can rewrite $\hat{\mat{R}}$ as
+Since $\hat{\mat{R}}$ is a symmetric and real, it is guaranteed to have an eigendecomposition.
+We can therefore diagonalize $\hat{\mat{R}}$ as
 
 $$
 \hat{\mat{R}} = \mat{V} \mat{\Lambda} \mat{V}^{-1},
