@@ -547,6 +547,7 @@ $$
 We can calculate these values by retrieving `pca$sdev`
 
 ```{r}
+library(magrittr)  # For is_weakly_greater_than()
 total_variance <- sum(pca$sdev^2)
 sprintf("Total variance: %.0f", total_variance)
 
