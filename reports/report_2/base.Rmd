@@ -13,6 +13,11 @@ header-includes:
   - \makeatletter
   - \def\verbatim@nolig@list{}
   - \makeatother
+  - \newcommand{\mat}[1]{\boldsymbol{#1}}
+
+  - \usepackage{bm}
+  - \usepackage[a]{esvect}
+  - \renewcommand{\vec}[1]{\vv{\bm{#1}}}
 ---
 
 ```{r setup, include=TRUE}
@@ -158,16 +163,16 @@ $$
   + \epsilon_i.
 $$
 
-A `price` prediction for the covariate vector $\boldsymbol{x}_0$ is constructed in the following manner
+A `price` prediction for the covariate vector $\vec{x}_0$ is constructed in the following manner
 
 $$
 \widehat{\texttt{logprice}}
 =
-\boldsymbol{\hat{\beta}}^T \boldsymbol{x}_0 \\
+\vec{\hat{\beta}}^T \vec{x}_0 \\
 \implies
 \widehat{\texttt{price}}
 =
-10^{\boldsymbol{\hat{\beta}}^T \boldsymbol{x}_0} = 10^{\beta_0} \cdot \prod_{i = 1}^{19} 10^{\beta_i \boldsymbol{x}_{0,i}}.
+10^{\vec{\hat{\beta}}^T \vec{x}_0} = 10^{\beta_0} \cdot \prod_{i = 1}^{19} 10^{\beta_i \vec{x}_{0,i}}.
 $$
 
 The tenth power of the regression coefficients are therefore of interest.
@@ -179,7 +184,7 @@ beta_hat <- coefficients(fit)
 ```
 
 Several things can be interpreted from this. The `(Intercept)` represents a 1 carat diamond, i.e. 0 `logcarat`, with a *fair* cut, *D* color category, and *I1* clarity category. Such a diamond is predicted to cost $\simeq$ \$968 USD.
-All other covariates must be interpreted *relative to* this "reference diamond". For instance, since $10^{\hat{\beta}_{\texttt{cutIdeal}}} \approx 1.135$, we would expect a diamond with an *ideal cut* to cost 13.5\% more than the "reference diamond", all other properties being equal.
+All other covariates must be interpreted *relative to* this "reference diamond". For instance, since $10^{\vec{\hat{\beta}}_{\texttt{cutIdeal}}} \approx 1.135$, we would expect a diamond with an *ideal cut* to cost 13.5\% more than the "reference diamond", all other properties being equal.
 
 **Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).
 
@@ -269,10 +274,10 @@ The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
 
 A _greedy_ approach means that the apparently best choice is taken at any one time, not considering the possibility of a suboptimal choice may be taken in order to achieve an *overall* better result further down the road. Once a decision has been made, no backtracking is performed, and the choice is "locked in".
 
-The idea of a regression tree is to take $n$ observation pairs $(\boldsymbol{x}_i, Y_i)$ and separating them into $J$ partitions of the predictor space, $R_1, ..., R_J$.
+The idea of a regression tree is to take $n$ observation pairs $(\vec{x}_i, Y_i)$ and separating them into $J$ partitions of the predictor space, $R_1, ..., R_J$.
 Predictions are made by identifying the region which a predictor falls within and then taking the average response of all the pairs of that region.
 
-A prediction, $\hat{f}_{R_j}$, for $x_0$ belonging to the region $R_j$, is therefore calculated as
+A prediction, $\hat{f}_{R_j}$, for $\vec{x}_0$ belonging to the region $R_j$, is therefore calculated as
 
 $$
 \hat{f}_{R_j} = \frac{1}{|R_j|} \sum_{i: x_i \in R_j} y_i,
@@ -283,8 +288,8 @@ where $|R_j|$ is the number of observed pairs placed within region $R_j$.
 Now a question remains; how to construct these regions? We use a greedy approach called *recursive binary splitting*. Define the parametrized regions
 
 \begin{gather*}
-  R_1(j, s) := \{x~|~x_j < s\}, \\
-  R_2(j, s) := \{x~|~x_j \geq s\}.
+  R_1(j, s) := \{\vec{x}~|~x_j < s\}, \\
+  R_2(j, s) := \{\vec{x}~|~x_j \geq s\}.
 \end{gather*}
 
 We want to pick the predictor $j$ and split-off point $s$ that minimizes the sum of the residual sum of squares of both sub-partition, i.e.
@@ -309,8 +314,8 @@ Yes, regression trees can handle mixed features, which is one of its advantages.
 Instead of deciding node traversal by a "less than" operator, as in the numerical case, a decision can be made by a "containment" operator in the categorical case. For instance if $x_j$ is a categorical covariate representing if a patient is smoking (coded as $1$) or not (coded as $0$), a splitting criterion could be
 
 \begin{gather*}
-  R_1 = \{ x~|~x_j = 1 \} \\
-  R_2 = \{ x~|~x_j = 0 \}.
+  R_1 = \{ \vec{x}~|~x_j = 1 \} \\
+  R_2 = \{ \vec{x}~|~x_j = 0 \}.
 \end{gather*}
 
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
@@ -370,11 +375,11 @@ The test MSE is $\approx 1.72 \cdot 10^{-2}$, a whole order of magnitude greater
 
 A problem with decision trees is that they often portray a large amount of variance, since small changes in the predictors will often result in very different trees. One solution to this problem is *bootstrap aggregation*, more commonly known as *bagging*.
 
-The idea is to draw a sufficiently large amount, $B$, bootstrap replicates from the training set and fit a tree, $\hat{f}_{b}(\boldsymbol{x})$, for every single replicate, $X_b$.
-The resulting predictor, $\hat{f}_{\text{avg}}(\boldsymbol{x})$ is the *average* of all those trees,
+The idea is to draw a sufficiently large amount, $B$, bootstrap replicates from the training set and fit a tree, $\hat{f}_{b}(\vec{x})$, for every single replicate, $X_b$.
+The resulting predictor, $\hat{f}_{\text{avg}}(\vec{x})$ is the *average* of all those trees,
 
 $$
-\hat{f}_{\text{avg}}(\boldsymbol{x}) = \frac{1}{B} \sum_{b = 1}^{B} \hat{f}_b (\boldsymbol{x}).
+\hat{f}_{\text{avg}}(\vec{x}) = \frac{1}{B} \sum_{b = 1}^{B} \hat{f}_b (\vec{x}).
 $$
 
 The motivation is this, assume that we have $B$ i.i.d. observations of the random variable $X$ with mean $\mu$ and variance $\sigma^2$. The unbiased mean estimator, $\bar{X} = \frac{1}{B} \sum_{b = 1}^B X_b$, has a variance of
@@ -449,6 +454,8 @@ We have a test MSE of $\approx 2.36 \cdot 10^{-3}$.
 
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
 
+Let $\mat{X}$
+
 We can now compare the test MSE scores of the four previous models.
 
 ```{r}
@@ -468,37 +475,37 @@ The tree model is much simpler to interpret, it condenses all the information do
 
 # Problem 2: Unsupervised learning [3 points]
 
-**Q21:** What is the definition of a principal component score, and how is the score related to the eigenvectors of the matrix \({\hat {\boldsymbol R}}\). 
+**Q21:** What is the definition of a principal component score, and how is the score related to the eigenvectors of the matrix \({\hat {\mat R}}\). 
 
-Given the estimated covariance matrix \( \hat{\boldsymbol R} \), we define its $m$-th principal component, $\boldsymbol{W}_m \in \mathbb{R}^{p \times 1}$, as
+Given the estimated covariance matrix \( \hat{\mat R} \), we define its $m$-th principal component, $\mat{W}_m \in \mathbb{R}^{p \times 1}$, as
 
 \begin{equation}
   \label{eq:decomposition}
-  \boldsymbol{W}_m
+  \mat{W}_m
   =
-  \hat{\boldsymbol{R}} \boldsymbol{\phi}_m
+  \hat{\mat{R}} \mat{\phi}_m
   =
-  \sum_{j = 1}^p \phi_{jm} \hat{\boldsymbol R}_j,
+  \sum_{j = 1}^p \phi_{jm} \hat{\mat R}_j,
   ~~~~\text{subject to}~~~~||\phi_{m}||_{2} = 1
 \end{equation}
 
-We want $\mathrm{Var}(\boldsymbol{W}_i) \geq \mathrm{Var}(\boldsymbol{W}_{i + 1})$ and $\boldsymbol{W}_i \perp \boldsymbol{W}_j$ given $i \neq j$. The intent here is to linearly decompose the estimated covariance matrix into uncorrelated columns ordered by their contribution to the overall variance in the data. That way we can transform the variables into a space of lower dimension while retaining the greatest possible amount of information.
+We want $\mathrm{Var}(\mat{W}_i) \geq \mathrm{Var}(\mat{W}_{i + 1})$ and $\mat{W}_i \perp \mat{W}_j$ given $i \neq j$. The intent here is to linearly decompose the estimated covariance matrix into uncorrelated columns ordered by their contribution to the overall variance in the data. That way we can transform the variables into a space of lower dimension while retaining the greatest possible amount of information.
 
-Since $\hat{\boldsymbol{R}}$ is a non-negative definite matrix it has an eigen-decomposition
+Since $\hat{\mat{R}}$ is a non-negative definite matrix it has an eigen-decomposition
 
 $$
-\hat{\boldsymbol{R}} = \boldsymbol{C} \Lambda \boldsymbol{C}^{-1},
+\hat{\mat{R}} = \mat{C} \mat{\Lambda} \mat{C}^{-1},
 $$
 
-where $\Lambda = \text{diag}(\lambda_1, ..., \lambda_p)$ is the diagonal eigenvalue matrix in \textit{decreasing} order and $\boldsymbol{C}$ is a matrix with the \textit{eigenvectors} of $\hat{\boldsymbol R}$ for its columns.
+where $\mat{\Lambda} = \text{diag}(\lambda_1, ..., \lambda_p)$ is the diagonal eigenvalue matrix in \textit{decreasing} order and $\mat{C}$ is a matrix with the \textit{eigenvectors} of $\hat{\mat R}$ for its columns.
 
-It can be shown that $\boldsymbol{\phi} = [\phi_1, ..., \phi_p]^T = \boldsymbol{C}$ solves equation \eqref{eq:decomposition}.
+It can be shown that $\mat{\phi} = [\phi_1, ..., \phi_p]^T = \mat{C}$ solves equation \eqref{eq:decomposition}.
 
 The *principal component scores* are the new values we attain in this transformed space.
 The $j$th principal component score for covariate $i$ is therefore
 
 $$
-  \boldsymbol{W}_{ij} = (\boldsymbol{W} \boldsymbol{C})_{ij}.
+  \mat{W}_{ij} = (\mat{W} \mat{C})_{ij}.
 $$
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
@@ -524,14 +531,14 @@ pca <- prcomp(Z)
 plot(1:dim(X)[2], pca$rotation[,1], type="l", xlab="genes", ylab="weight")
 ```
 
-Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\boldsymbol{R}}$.
-With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\boldsymbol{R}}$ in order to get the first principal component, which explains the most variance of all the principal components.
+Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\mat{R}}$.
+With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\mat{R}}$ in order to get the first principal component, which explains the most variance of all the principal components.
 
-Since $\boldsymbol{X}$ and $\boldsymbol{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
+Since $\mat{X}$ and $\mat{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
 
-**Q23:** How many principal components are needed to explain 80% of the total variance in ${\boldsymbol{Z}}$? Why is `sum(pca$sdev^2)=p`? 
+**Q23:** How many principal components are needed to explain 80% of the total variance in ${\mat{Z}}$? Why is `sum(pca$sdev^2)=p`? 
 
-If we transform $\boldsymbol{Z}$ into the first $M$ principal components, the fraction of the original variance that is kept is
+If we transform $\mat{Z}$ into the first $M$ principal components, the fraction of the original variance that is kept is
 
 $$
   R^2
@@ -613,10 +620,6 @@ ctest <- flying$ctest
 
 **Q28:** Start by getting to know the _training data_, by producing summaries and plots. Write a few sentences about what you observe and include your top 3 informative plots and/or outputs.
 
-```{r}
-# library(GGally)
-# ggpairs(ctrain)
-```
 
 **Q29:** Use different methods to analyse the data. In particular use 
 
