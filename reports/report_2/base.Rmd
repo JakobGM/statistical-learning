@@ -477,36 +477,51 @@ The tree model is much simpler to interpret, it condenses all the information do
 
 **Q21:** What is the definition of a principal component score, and how is the score related to the eigenvectors of the matrix \({\hat {\mat R}}\). 
 
-Given the estimated covariance matrix \( \hat{\mat R} \), we define its $m$-th principal component, $\mat{W}_m \in \mathbb{R}^{p \times 1}$, as
+Assume that you have an $n \times p$ design matrix $\mat{X}$, with a standardized version $\mat{Z}$ where the columns have been centered (having mean $0$) and scaled (having variance $1$).
+We want to linearly transform the set of (possibly) correlated covariates into a new orthogonal basis where the *new* variables are linearly uncorrelated while retaining as much of the information (variance) in the data as possible.
+These new variables, $\mat{W}_m$, are called *principal components* and the problem can be formally defined as trying to solve
 
-\begin{equation}
+\begin{align}
   \label{eq:decomposition}
-  \mat{W}_m
+  &\mat{W}_m
   =
   \hat{\mat{R}} \mat{\phi}_m
   =
   \sum_{j = 1}^p \phi_{jm} \hat{\mat R}_j,
-  ~~~~\text{subject to}~~~~||\phi_{m}||_{2} = 1
-\end{equation}
+    & \forall m: ||\mat{\phi}_{m}||_{2} &= 1 \nonumber \\
+  %
+  &\mathrm{Var}(\mat{W}_i) \geq \mathrm{Var}(\mat{W}_{j})
+    &\forall i,j: i &< j \\
+  %
+  &\mat{W}_i \perp \mat{W}_j,
+    & \forall i,j: i &\neq j \nonumber.
+\end{align}
 
-We want $\mathrm{Var}(\mat{W}_i) \geq \mathrm{Var}(\mat{W}_{i + 1})$ and $\mat{W}_i \perp \mat{W}_j$ given $i \neq j$. The intent here is to linearly decompose the estimated covariance matrix into uncorrelated columns ordered by their contribution to the overall variance in the data. That way we can transform the variables into a space of lower dimension while retaining the greatest possible amount of information.
+The new variables are linear combination of the original columns.
+Since the components are sorted in decreasing order of variance contributed, we can subset the first $M$ components in order to reduce the dimensionality of the original data set while retaining the maximum amount of information in the data set.
 
-Since $\hat{\mat{R}}$ is a non-negative definite matrix it has an eigen-decomposition
+We will now explain how to solve this problem.
+The estimated covariance matrix, $\hat{\mat{R}} \in \mathbb{R}^{p \times p}$, for the standardized design matrix, $\mat{Z}$, is given as
 
 $$
-\hat{\mat{R}} = \mat{C} \mat{\Lambda} \mat{C}^{-1},
+{\hat {\mat{R}}}
+=
+\frac{1}{n-1} \sum_{i=1}^n ({\mat{Z}}_i - \bar{\mat{Z}})({\mat{Z}}_i - \bar{\mat{Z}})^T.
 $$
 
-where $\mat{\Lambda} = \text{diag}(\lambda_1, ..., \lambda_p)$ is the diagonal eigenvalue matrix in \textit{decreasing} order and $\mat{C}$ is a matrix with the \textit{eigenvectors} of $\hat{\mat R}$ for its columns.
+We know that $\text{rank}(\hat{\mat{R}}) = \text{min}(p,~n - 1)$, which we will denote as $r$.
+Since $\hat{\mat{R}}$ is a non-negative definite matrix it is guaranteed to have an eigendecomposition, we can rewrite $\hat{\mat{R}}$ as
 
-It can be shown that $\mat{\phi} = [\phi_1, ..., \phi_p]^T = \mat{C}$ solves equation \eqref{eq:decomposition}.
+$$
+\hat{\mat{R}} = \mat{V} \mat{\Lambda} \mat{V}^{-1},
+$$
+
+where $\mat{\Lambda} = \text{diag}(\lambda_1, ..., \lambda_r, 0, ..., 0) \in \mathbb{R}^{p \times p}$ is the diagonal eigenvalue matrix sorted in \textit{decreasing} order and $\mat{V} = [\vec{v}_1, ..., \vec{v}_p]$ is a matrix which columns consists of the respective \textit{eigenvectors} of $\hat{\mat R}$.
+It can be shown that $\mat{\phi} = [\phi_1, ..., \phi_p]^T = \mat{V}$ solves equation \eqref{eq:decomposition}.
 
 The *principal component scores* are the new values we attain in this transformed space.
-The $j$th principal component score for covariate $i$ is therefore
-
-$$
-  \mat{W}_{ij} = (\mat{W} \mat{C})_{ij}.
-$$
+The transformation is given as $\mat{Z} \mat{\phi} = \mat{Z} \mat{V} \in \mathbb{R}^{p \times p}$, where only the $r$ first columns are nonzero.
+We therefore end up in practice with $r$ principal component scores for each of the original observations.
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
 
@@ -620,6 +635,10 @@ ctest <- flying$ctest
 
 **Q28:** Start by getting to know the _training data_, by producing summaries and plots. Write a few sentences about what you observe and include your top 3 informative plots and/or outputs.
 
+```{r, cache = TRUE}
+library(GGally)
+ggpairs(ctrain)
+```
 
 **Q29:** Use different methods to analyse the data. In particular use 
 
