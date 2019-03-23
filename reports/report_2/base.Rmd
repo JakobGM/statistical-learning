@@ -548,9 +548,18 @@ plot(1:dim(X)[2], pca$rotation[,1], type="l", xlab="genes", ylab="weight")
 ```
 
 Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\mat{R}}$.
-With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\hat{\mat{R}}$ in order to get the first principal component, which explains the most variance of all the principal components.
+With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\mat{Z}$ in order to get the first principal component, which explains the most variance of all the principal components.
 
-Since $\mat{X}$ and $\mat{Z}$ are $n \times p = 6380 \times 64$ matrices, there are only $64$ eigenvectors and eigenvalues.
+For our dataset, we have $r = \text{min}(p,~n - 1) = \text{min}(6830,~64 - 1) = 63$.
+There should therefore be $n = 63$ eigenvectors, and $n = 63$ principal component scores for each observation.
+The \texttt{R}-function `prcomp()` returns 64, but the last eigenvector is the first of the $n - r$ eigenvectors which are spanned by $\text{Null}(Z)$.
+We would therefore expect $\lambda_{64} = 0$, which we can check
+
+```{r}
+pca$sdev[64]^2
+```
+
+This is for all intents and purposes equal to $0$, which is what we expected.
 
 **Q23:** How many principal components are needed to explain 80% of the total variance in ${\mat{Z}}$? Why is `sum(pca$sdev^2)=p`? 
 
