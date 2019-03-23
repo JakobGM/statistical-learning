@@ -596,12 +596,12 @@ sprintf(
 ```
 
 We can explain 80\% of the variance with the 32 first principal components.
-Since the principal component analysis is performed on the *standardized* covariance matrix where the variance for each variable has been scaled to $1$ the total variance becomes $\sum_{i = 1}^p 1 = p$.
+Since the principal component analysis is performed on the *standardized* covariance matrix where the variance for each covariate has been scaled to $1$ the total variance becomes $\sum_{i = 1}^p 1 = p$.
 
 
 **Q24**: Study the PC1 vs PC2 plot, and comment on the groupings observed. What can you say about the placement of the `K262`, `MCF7` and `UNKNOWN` samples? Produce the same plot for two other pairs of PCs and comment on your observations.
 
-```{r}
+```{r, fig.cap = "\\label{fig:pc1vs2}PC1 scores plotted against PC2 scores"}
 plot_pca <- function(first, second) {
   plot(
     pca$x[,first],
@@ -622,6 +622,31 @@ plot_pca <- function(first, second) {
 
 plot_pca(1, 2)
 ```
+
+We can see in \ref{fig:pc1vs2} the first principal component scores plotted against the second.
+`MELANOMA` cancer cells clustered away from the other cancer tumors with respect to the `PC2`-axis.
+`LEUKEMIA`, on the other hand, is separated away from most of the others along the `PC1`-axis.
+The `K562`, which are known as Leukemia cells, are clustered in the vicinity of `COLON` and `LEUKEMIA` which may imply a sort of similarity between these cell types.
+The same can be said of `MCF7`, which are known to be breast cancer cells.
+The `UNKNOWN` sample seems to be clustered close to `PROSTATE` and `NSCLC`/`OVARIAN` (unsure about the last one, because the colors are so similar). Perhaps `UNKNOWN` is an `NSCLC` sample?
+
+We will now plot `PC3` against `PC4`.
+
+```{r}
+plot_pca(3, 4)
+```
+
+Here we see less distinct clusters. `LEUKEMIA` and `COLOR` are somewhat separated from the rest. The `UNKNOWN` sample is close to `CNS`, amongst others. Most of the points are placed close to the line $\texttt{PC1} = \texttt{PC2}$.
+
+An lastly, we plot `PC5` against `PC6`.
+
+```{r}
+plot_pca(5, 6)
+```
+
+This is the plot with the least visual patterns so far.
+Most of the points are placed around $\texttt{PC6} = -\texttt{PC5}$, `LEUKEMIA` seems to be spread far away on both sides of this line.
+
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
 
