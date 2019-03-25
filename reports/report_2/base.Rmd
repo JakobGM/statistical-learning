@@ -638,14 +638,13 @@ plot_pca(3, 4)
 
 Here we see less distinct clusters. `LEUKEMIA` and `COLOR` are somewhat separated from the rest. The `UNKNOWN` sample is close to `CNS`, amongst others. Most of the points are placed close to the line $\texttt{PC1} = \texttt{PC2}$.
 
-An lastly, we plot `PC5` against `PC6`.
+An lastly, we plot `PC63` against `PC64`.
 
 ```{r}
-plot_pca(5, 6)
+plot_pca(63, 64)
 ```
 
-This is the plot with the least visual patterns so far.
-Most of the points are placed around $\texttt{PC6} = -\texttt{PC5}$, `LEUKEMIA` seems to be spread far away on both sides of this line.
+Here it becomes really apparent that $\mat{W}_{64} \in \text{Null}(Z)$ as all the observations are placed along the line $\texttt{PC64} = 0$ within numerical error.
 
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
