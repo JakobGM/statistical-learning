@@ -708,6 +708,48 @@ Perhaps this cell sample is ovarian, possibly cancerous?
 
 **Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on the first 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
 
+In task **Q26** observations are clustered according to their respective euclidean distances in the original covariate vector space $\mathbb{R}^p$, i.e.
+
+$$
+|| \vec{z}_1 - \vec{z}_2 ||_2
+=
+\sqrt{ \sum_{j = 1}^{p} (z_{1j} - z_{2j})^2 }
+$$
+
+When performing hierarchical clustering on the principal component scores, the distance measure is defined over the principal component space $\mathbb{R}^r$ instead.
+
+$$
+  || \vec{w}_1 - \vec{w}_2 ||_2
+  =
+  \sqrt{ \sum_{j = 1}^{r} \left(w_{1j} - w_{2j}\right)^2 }
+$$
+
+The $64^{\text{th}}$ principal component score will always be $\simeq 0$, so it will not contribute to the distance.
+Which different does this make?
+Observe the following
+
+\begin{gather*}
+  || \vec{w}_1 - \vec{w}_2 ||_2
+  =
+  || \vec{z}_1^T \mat{V} - \vec{z}_2^T \mat{V} ||_2
+  =
+  || (\vec{z}_1 - \vec{z}_2)^T \mat{V} ||_2 \\
+  %
+  \leq
+  || \vec{z}_1 - \vec{z}_2 ||_2 ||\mat{V}||_2
+  =
+  || \vec{z}_1 - \vec{z}_2 ||_2
+\end{gather*}
+
+Here we have used that the columns of the eigenvector matrix $\mat{V}$ are *orthonormal* which results in $||\mat{V}||_2 = 1$.
+We can see that the distances have been contracted in the principal component space.
+
+Why is this instructive?
+Consider a data set with two covariates, $x_1$ and $x_2$, where the two covariates are almost *perfectly* correlated, let's say $x_{i2} = x_{i1} + \epsilon_i$.
+The original distance measure between $x_1 = (1, 1)$ and $x_2 = (2, 2)$ would become $\sqrt{2}$, while the two respective principal components would have a distance of $1$.
+The clustering of the principal components therefore accounts for correlations which may contribute to overestimations of the dissimilarity between observations!
+
+
 ```{r}
 library(pheatmap)
 npcs=64 
