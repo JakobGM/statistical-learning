@@ -692,6 +692,20 @@ This is now what we want to minimize when we fuse two clusters of arbitrary card
 
 **Q26:**: Perform hierarchical clustering with Euclidean distance and average linkage on the scaled gene expression in `Z`. Observe where our samples labelled as K562, MCF7 and `UNKNOWN` are placed in the dendrogram. Which conclusions can you draw from this?
 
+```{r, fig.height = 5, fig.fullwidt = TRUE}
+dissimilarity_structure <- dist(Z, method = "euclidean")
+hc_model <- hclust(dissimilarity_structure, method = "average")
+plot(hc_model, cex = 0.45)
+```
+
+The two `K562` cells are first clustered together, and afterwards with all the other `LEUKEMIA` samples. This is what we would expect, as they should be similar.
+The `MCF7` cells, which are known to be breast cancer cells, are also clustered with `BREAST` cells, which is also expected.
+
+With other words, cancerous cells show a degree of similarity to the surrounding cells in the body.
+
+Lastly, the `UNKNOWN` cell is considered to be relatively close to an `OVARIAN` sample.
+Perhaps this cell sample is ovarian, possibly cancerous?
+
 **Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on the first 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
 
 ```{r}
