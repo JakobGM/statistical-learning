@@ -649,6 +649,47 @@ Here it becomes really apparent that $\mat{W}_{64} \in \text{Null}(Z)$ as all th
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
 
+A cluster, $C_k$, is considered to be good if it has a *within-cluster variation* that is as small as possible.
+The within-cluster variation, $W(C_k)$, is defined in terms of the *squared* Euclidean distance between the members of the cluster
+
+$$
+W(C_k) = \frac{1}{|C_k|} \sum_{i, i' \in C_k} \sum_{j = 1}^p (x_{ij} - x_{i'j})^2,
+$$
+
+where $|C_k|$ is the cardinality of the cluster set.
+Thus we want to find a cluster superset $C = \{C_1, ..., C_k\}$ which minimizes $\sum_{k = 1}^K W(C_k)$.
+Several algorithms exists for finding such cluster sets, one of which is the *hierarchical clustering algorithm*.
+The algorithm goes as follows:
+
+\begin{enumerate}
+  \item Start with all $n$ observations, i.e. the bottom of the \textit{dendogram} (see next task). Consider each observation to be its own cluster.
+  \item \texttt{while number of clusters} $> 1$:
+  \begin{enumerate}
+    \item Fuse the two clusters that are the most similar to each other.
+    \item Decrement \texttt{number of clusters} by $1$.
+  \end{enumerate}
+\end{enumerate}
+
+A question remains to be answered; how to define *similarity* between clusters?
+Consider two clusters consisting of a single observation each, $\vec{x}_1$ and $\vec{x}_2$.
+We can use the *euclidean distance* $||\vec{x}_1 - \vec{x}_2||_2$ as a similarity measure amongst others.
+
+But how do we measure the similarity between two clusters with cardinalities that are not equal to $1$?
+We need to generalize the concept of similarity to groups of observations.
+This is problem called *linkage*.
+There are no straight forward answers here, but one proposal solution is to use *mean inter-cluster dissimilarity*, aka. "average linking".
+Define the average distance measure $D_a$ between two clusters $C_1$ and $C_2$ as
+
+$$
+D_{a}(C_1, C_2)
+=
+  \frac{1}{|C_1| \cdot |C_2|}
+  \sum_{x_i, x_j \in C_1 \times C_2} ||x_i - x_j||_2,
+$$
+
+where $C_1 \times C_2$ is the Cartesian product between the two cluster sets.
+This is now what we want to minimize when we fuse two clusters of arbitrary cardinality.
+
 **Q26:**: Perform hierarchical clustering with Euclidean distance and average linkage on the scaled gene expression in `Z`. Observe where our samples labelled as K562, MCF7 and `UNKNOWN` are placed in the dendrogram. Which conclusions can you draw from this?
 
 **Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on the first 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
