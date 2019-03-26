@@ -821,6 +821,20 @@ ggpairs(
 Here, `diabetes = 0` is shown in red and `diabetes = 1` is shown in blue.
 We can now see that diabetes sufferers are overrepresented in the right tail of all the covariates (see the diagonal), especially `glu`.
 
+### `ggplot()`
+
+A priori, we would predict glucose levels and body mass index to be positively correlated, so we can take an extra closer look at this.
+
+```{r}
+ctrain %>%
+  ggplot() +
+  aes(x = glu, y = bmi, color = diabetes) +
+  geom_point()
+```
+
+Here we see `glu` plotted against `bmi`, where the blue color represents `diabetes` sufferers.
+Again, diabetes is highly overrepresented in the upper right corner, so this confirms the positive correlation.
+
 **Q29:** Use different methods to analyse the data. In particular use 
 
 * one method from Module 4: Classification
