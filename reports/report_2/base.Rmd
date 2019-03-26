@@ -775,13 +775,36 @@ The last column, which is the 64th principal components, is clearly populated by
 
 # Problem 3: Flying solo with diabetes data [6 points]
 
+First we import the data set.
+
 ```{r}
 flying <- dget("flying.dd")
-ctrain <- flying$ctrain
-ctest <- flying$ctest
+ctrain <- flying$ctrain %>% as_tibble()
+ctest <- flying$ctest %>% as_tibble()
 ```
 
 **Q28:** Start by getting to know the _training data_, by producing summaries and plots. Write a few sentences about what you observe and include your top 3 informative plots and/or outputs.
+
+## `summary()`
+
+First it is practical to get a quick summary of the data structure of the training set by using `summary()`:
+
+```{r}
+summary(ctrain)
+```
+
+First of, we observe that *all* the columns are of numeric types.
+This is okay for the covariates, as they are considered to be numeric, but we prefer to encode the `diabetes` response as a factor variable, so we will do this straight away.
+
+```{r}
+ctrain$diabetes <- as.factor(ctrain$diabetes)
+ctest$diabetes <- as.factor(ctest$diabetes)
+```
+
+Otherwise, we can see that one third of the observations have `diabetes = 1`.
+Also, the median number of pregnancies is $2$ and the average is $3.437$, so we have a positive skew in pregnancies.
+The `age` column spans from $21$ to $70$, which is good, since most age segments are represented.
+Lastly, the average and median `bmi` is $\approx 33$, which is considered to be obese, which makes sense in a sample set where $33\%$ of the observations have diabetes.
 
 ```{r, cache = TRUE}
 library(GGally)
@@ -832,7 +855,7 @@ print(logistic_confmat)
 
 * one method from Module 8: Trees (and forests)
 
-```{r}
+```{r, eval = FALSE}
 library(xgboost)
 xgb_train_data <- xgb.DMatrix(
   as.matrix(ctrain %>% dplyr::select(-diabetes)),
