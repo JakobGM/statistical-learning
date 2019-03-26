@@ -746,15 +746,32 @@ We can see that the distances have been contracted in the principal component sp
 
 Why is this instructive?
 Consider a data set with two covariates, $x_1$ and $x_2$, where the two covariates are almost *perfectly* correlated, let's say $x_{i2} = x_{i1} + \epsilon_i$.
-The original distance measure between $x_1 = (1, 1)$ and $x_2 = (2, 2)$ would become $\sqrt{2}$, while the two respective principal components would have a distance of $1$.
+The original distance measure between $x_1 = (1, 1)$ and $x_2 = (2, 2)$ would become $\sqrt{2}$, while the two respective principal components would have a distance of $\approx 1$.
 The clustering of the principal components therefore accounts for correlations which may contribute to overestimations of the dissimilarity between observations!
 
+We now plot the principal component scores as a heatmap.
 
 ```{r}
 library(pheatmap)
-npcs=64 
-pheatmap(pca$x[,1:npcs],scale="none",cluster_col=FALSE,cluster_row=TRUE,clustering_distance_rows = "euclidean",clustering_method="average",fontsize_row=5,fontsize_col=5)
+par(mfcol=c(1, 1))
+npcs <- 64 
+pheatmap(
+  pca$x[,1:npcs],
+  scale = "none",
+  cluster_col = FALSE,
+  cluster_row = TRUE,
+  clustering_distance_rows = "euclidean",
+  clustering_method = "average",
+  fontsize_row = 5,
+  fontsize_col = 5
+)
 ```
+
+The hierarchical clustering algorithm can be seen on the left vertical axis.
+The horizontal axis shows the principal components, while the right vertical axis shows the observations.
+The pixels show the principal component scores of each observation, red pixels indicate great positive scores while blue values indicate great negative scores.
+Here it becomes apparent that the first principal component has the most variance, and that the variance decreases as we move right.
+The last column, which is the 64th principal components, is clearly populated by zeros, as explained earlier.
 
 # Problem 3: Flying solo with diabetes data [6 points]
 
