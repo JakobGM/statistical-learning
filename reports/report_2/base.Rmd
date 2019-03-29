@@ -845,22 +845,17 @@ We can take a closer look at the covariance matrix of the design matrix with `gg
 library(ggcorrplot)
 library(corrr)
 ctrain %>%
-  mutate(diabetes = as.numeric(diabetes) - 1) %>%
-  as.matrix() %>%
+  select(-diabetes) %>%
   cor() %>%
   ggcorrplot(
     type = "lower",
-    p.mat = cor_pmat(.),
-    sig.level = 0.05,
     hc.order = TRUE,
     title = "Correlation matrix",
     show.diag = TRUE
   )
 ```
 
-The pixels that are crossed out are considered to have an insignificant correlation at a significance level of $0.05$.
-What is interesting here is the fact that only $\text{Cor}(\texttt{age}, \texttt{npreg})$ and $\text{Cor}(\texttt{skin}, \texttt{bmi})$ are considered to be significant.
-`diabetes` has no significant correlation to any of the covariates, which can be considered bad for our predictive capabilities using this data set.
+What is interesting here is the fact that $\text{Cor}(\texttt{age}, \texttt{npreg})$ and $\text{Cor}(\texttt{skin}, \texttt{bmi})$ are the most correlated amongst the covariates, with $\text{Cor}(\texttt{age}, \texttt{bp})$ following somewhat behind.
 
 
 **Q29:** Use different methods to analyse the data. In particular use 
