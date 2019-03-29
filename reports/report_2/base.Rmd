@@ -902,40 +902,53 @@ print(logistic_confmat)
 
 * one method from Module 8: Trees (and forests)
 
-```{r, eval = FALSE}
+```{r, cache = TRUE}
 library(xgboost)
-xgb_train_data <- xgb.DMatrix(
-  as.matrix(ctrain %>% dplyr::select(-diabetes)),
-  label=ctrain$diabetes
-)
-xgb_model <- xgboost(
-  data = xgb_train_data,
-  nrounds = 10,
-  objective = "binary:logistic"
+
+levels(ctrain$diabetes) <- c("healthy", "diabetes")
+cross_validation <- trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  allowParallel = TRUE
 )
 
-xgb_test_data <- xgb.DMatrix(
-  as.matrix(ctest %>% dplyr::select(-diabetes)),
-  label=ctest$diabetes
+tune_grid <- expand.grid(
+  nrounds = 2, 
+  max_depth = c(5, 10, 15), 
+  eta = c(0.01, 0.001, 0.0001), 
+  gamma = c(1, 2, 3), 
+  colsample_bytree = c(0.4, 0.7, 1.0), 
+  min_child_weight = c(0.5, 1, 1.5),
+  subsample = c(0.5, 0.75, 1)
 )
+
+xgb_train <- caret::train(
+  form = diabetes ~ .,
+  data = ctrain,
+  method = "xgbTree",
+  trControl = cross_validation,
+  tuneGrid = tune_grid
+)
+
 
 xgb_predictions <- predict(
-    xgb_model,
-    newdata = xgb_test_data,
-    type = "response"
+    xgb_train,
+    newdata = ctest,
+    type = "prob"
   ) %>%
+  pull(diabetes) %>%
   map_dbl(~ .x > 0.5) %>%
   as.factor()
 
 xgb_confmat <- confusionMatrix(
   data = xgb_predictions,
-  reference = ctest$diabetes %>% as.factor()
+  reference = ctest$diabetes
 )
-
 print(xgb_confmat)
 
-importance_frame <- xgb.importance(colnames(xgb_train_data), model = xgb_model)
-xgb.plot.importance(importance_frame)
+plot(xgb_train)
 ```
 
 * one method from Module 9: Support vector machines and, finally
