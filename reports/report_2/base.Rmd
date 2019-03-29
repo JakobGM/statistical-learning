@@ -79,8 +79,6 @@ We now use the local regression model $\texttt{logprice} = \beta_0 + \beta_1 \te
 model1 <- loess(logprice ~ carat + carat^2, data = dtrain, span = 0.2)
 ```
 
-Why can't we use `as.is`?
-
 We make a price prediction for a 1 carat diamond, using the closest 20\% of the observations:
 
 ```{r}
