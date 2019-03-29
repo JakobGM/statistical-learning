@@ -20,15 +20,17 @@ header-includes:
   - \renewcommand{\vec}[1]{\vv{\bm{#1}}}
 ---
 
-```{r setup, include=TRUE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(error=FALSE)
-knitr::opts_chunk$set(warning=FALSE)
-knitr::opts_chunk$set(message=FALSE)
-knitr::opts_chunk$set(results="hold")
+knitr::opts_chunk$set(error = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(results = "hold")
 ```
 
 # Problem 1: Regression [6 points]
+
+We start by importing the data set used in this problem.
 
 ```{r}
 all <- dget("https://www.math.ntnu.no/emner/TMA4268/2019v/data/diamond.dd")
@@ -55,7 +57,9 @@ dall %>%
   ggplot(aes(y = logprice)) +
   geom_point(aes(x = value), alpha = 0.3) +
   facet_grid(.~key, scales = "free")
+```
 
+```{r}
 # Plot continuous covariates
 dall %>%
   gather(key, value, c("carat", "logcarat")) %>%
@@ -64,7 +68,8 @@ dall %>%
   facet_grid(.~key, scales = "free")
 ```
 
-We observe that `logcarat` seems to be the covariate that has the most linear effect, which is promising. The `clarity`, `color`, and `cut` covariates do not seem to have little to none distinguishing effect on the price.
+We observe that `logcarat` *seems* to be the covariate that has the most linear correlation with `logprice`, while `carat` does not.
+It is difficult to see any clear trends in the plots of the categorical covariates `clarity`, `color`, and `cut`.
 
 **Q2:** What is the predicted price of a diamond weighting 1 carat. Use the closest 20% of the observations. 
 
