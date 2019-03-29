@@ -900,56 +900,158 @@ logistic_confmat <- confusionMatrix(
 print(logistic_confmat)
 ```
 
-* one method from Module 8: Trees (and forests)
+
+## Module 8: Trees (and forests)
+
+### How it works
+
+We now want to fit a *boosted* tree to the data set.
+A boosted tree is a sequential learning model that learns by "modifying" itself based on the remaining residuals in each step.
+Here is how it works algorithmically:
+
+\begin{enumerate}
+  \item Set $\hat{f}^{(0)}(x) = 0$ and $r_i = y_i$ for all $i$ in the training set.
+  \item For $b = 1, 2, ..., B$, repeat:
+  \begin{enumerate}
+    \item Fit a \textit{new} $\hat{f}^{(b)}$ with $d$ splits, from the residuals of $\hat{f}^{(b - 1)}$. This results in $d + 1$ leaf nodes.
+    \item Update $\hat{f}$ by adding a shrunken down version of this new tree: $$\hat{f} \leftarrow \hat{f} + \lambda \hat{f}^{(b)}$$.
+    \item Update the residuals, $$r_i \leftarrow r_i - \lambda \hat{f}^{(b)}(x_i)$$
+  \end{enumerate}
+  \item The boosted model is $\hat{f}(x) = \sum_{b = 1}^B \lambda \hat{f}^{(b)}(x)$.
+\end{enumerate}
+
+### Parameters
+
+We will use the package `gbm` in order to fit this boosted tree, but we need to pick the following tuning parameters:
+
+\begin{itemize}
+  \item The number of trees grown, $B$. If this is too low, not all of the information is used, while if it is too large we will overfit the model. \texttt{gbm} calls this paramater \texttt{n.trees}.
+  \item The shrinkage paramater, $\lambda$, determines how fast the the algorithm learns. A lawer value will require more trees in order to offset the slow learning. \texttt{gbm} calls this parameter \texttt{shrinkage}.
+  \item The interaction depth, $d$, is the number of splits in each tree. Greater values imply a greater degree of interaction between the covariates, while $d = 1$ results in an \textit{additive} model. \texttt{gbm} calls this parameter \texttt{interaction.depth}.
+  \item Additionally, \texttt{gbm} requires the parameter \texttt{n.minobsinnode} which constrains the minimal size of the leaf nodes. That way the algorithm can't put "troublesome" residuals into very small leaf nodes in order to reduce such residuals, that would lead to overfitting. We will denote this parameter as $m$.
+\end{itemize}
+
+The question remains, how to choose these parameters?
+We will use 10-fold cross validation in conjunction with a grid search in order to pick suitable tuning parameters from our training set.
+
+The \texttt{R}-package `caret` enables us to specify the cross validation with `trainControl()`:
 
 ```{r, cache = TRUE}
-library(xgboost)
-
-levels(ctrain$diabetes) <- c("healthy", "diabetes")
 cross_validation <- trainControl(
   method = "cv",
-  number = 5,
+  number = 10,
   classProbs = TRUE,
-  summaryFunction = twoClassSummary,
   allowParallel = TRUE
 )
+```
 
+We can also specify the grid on which to search for the best tuning parameters.
+We will choose:
+
+\begin{align*}
+  \vec{B} &= [10, 20, 30, 40, 50] \\
+  \vec{d} &= [1, 3, 5, 10] \\
+  \vec{\lambda} &= [0.2, 0.15, 0.1, 0.05, 0.01] \\
+  \vec{m} &= [10, 15, 20, 30]
+\end{align*}
+
+where the grid to search upon becomes $\vec{B} \times \vec{d} \times \vec{\lambda} \times \vec{m}$.
+This can also be specified in `caret` with the function `expand.grid()`:
+
+```{r}
 tune_grid <- expand.grid(
-  nrounds = 2, 
-  max_depth = c(5, 10, 15), 
-  eta = c(0.01, 0.001, 0.0001), 
-  gamma = c(1, 2, 3), 
-  colsample_bytree = c(0.4, 0.7, 1.0), 
-  min_child_weight = c(0.5, 1, 1.5),
-  subsample = c(0.5, 0.75, 1)
+ n.trees = c(10, 20, 30, 40, 50),
+ interaction.depth = c(1, 3, 5, 10),
+ shrinkage = c(0.2, 0.15, 0.1, 0.05, 0.01),
+ n.minobsinnode = c(10, 15, 20, 30)
 )
+```
 
-xgb_train <- caret::train(
+### Fitting the model
+
+We can now instruct caret to train a boosted tree model with a search upon this grid.
+The model with the best cross-validated accuracy is chosen.
+
+```{r, cache = TRUE}
+ctrain$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
+boost_model <- caret::train(
   form = diabetes ~ .,
   data = ctrain,
-  method = "xgbTree",
+  method = "gbm",
   trControl = cross_validation,
-  tuneGrid = tune_grid
+  tuneGrid = tune_grid,
+  verbose = FALSE
 )
+```
 
+We can plot the cross-validated accuracy for each point on the grid:
 
-xgb_predictions <- predict(
-    xgb_train,
+```{r, fig.fullwidth = TRUE, fig.height = 6}
+plot(
+  boost_model,
+  metric = "Accuracy",
+  highlight = TRUE,
+  cex = 0.5
+)
+```
+
+Here it becomes obvious that $\lambda = 0.01$ is the worst of them all.
+We can get the specific point on the grid which is considered optimal:
+
+```{r}
+boost_model$bestTune
+```
+
+$B = 40$, $d = 5$, $\lambda = 0.1$, and $m = 15$ performs best, so this is what is chosen in the final model.
+We can create a variable importance plot of the final model
+
+```{r}
+final_model <- boost_model$finalModel
+summary(final_model)
+```
+
+`glu` (glucose) is considered the most important covariate according to our final model.
+This coincides with what the authors would expect as blood sugar levels are highly related to diabetes.
+We can calculate the confusion matrix of this model tested against our test data set.
+
+```{r}
+boost_probabilities <- predict(
+    boost_tuning,
     newdata = ctest,
     type = "prob"
   ) %>%
-  pull(diabetes) %>%
+  pull(diabetes)
+boost_predictions <- boost_probabilities %>%
   map_dbl(~ .x > 0.5) %>%
   as.factor()
 
-xgb_confmat <- confusionMatrix(
-  data = xgb_predictions,
+boost_confmat <- confusionMatrix(
+  data = boost_predictions,
   reference = ctest$diabetes
 )
-print(xgb_confmat)
-
-plot(xgb_train)
+print(boost_confmat)
 ```
+
+The result here is an overall accuracy of $\approx 78\%$, i.e. a misclassification rate of $12\%$.
+Interestingly, we have a $\approx 88\%$ sensitivity, so the model is able to correctly predict diabetes for nine out of ten diabetes sufferers.
+
+Finally, we can plot the ROC-curve for the model and report the AUC.
+
+```{r, fig.width = 4, fig.height = 4, fig.align = "center"}
+library(pROC)
+roc(
+  response = ctest$diabetes,
+  predictor = boost_probabilities,
+  plot = TRUE,
+  auc.polygon = TRUE,
+  print.auc = TRUE,
+  legacy.axes = TRUE,
+  xlim = c(1, 0)
+) 
+```
+
+Here we see that the ROC curve is far from being diagonal and $\text{AUC} = 0.84 > 0.5$, which a random guessing model would have.
+It can be considered to have explaining power.
 
 * one method from Module 9: Support vector machines and, finally
 * one method from Module 11: Neural networks
