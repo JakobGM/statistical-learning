@@ -814,7 +814,9 @@ Next up we can use `ggpairs()` to get a really quick overview of the distributio
 library(GGally)
 ggpairs(
   ctrain,
-  mapping = aes(color = diabetes, alpha = 0.5)
+  mapping = aes(color = diabetes, alpha = 0.5),
+  upper = list(continuous = wrap("cor", size = 2.5)),
+  lower = list(continuous = wrap("points", size = 0.2))
 )
 ```
 
