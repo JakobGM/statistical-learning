@@ -91,23 +91,34 @@ So the prediction is that a 1 carat diamond will cost $\simeq$ $5100 USD.
 
 **Q3:** What choice of $\beta_1$, $\beta_2$ and $K_{i0}$ would result in KNN-regression?
 
-If we set the following values
+Let $\mathcal{N}_0$ be the index set for the $K$ nearest (euclidean) neighbours of the predictor variable $\vec{x}_0$.
+Now assign the following values
+
+\begin{align*}
+  \beta_1 &\leftarrow 0 \\
+  %
+  \beta_2 &\leftarrow 0 \\
+  %
+  K_{i0} &\leftarrow I(i \in \mathcal{N}_0).
+\end{align*}
+
+This yields the following expression to be minimized by the local regression
+
+\begin{equation*}
+  \sum_{i = 1}^n K_{i0}(y_i - \beta_0 - \beta_1 x_i - \beta_2x_i^2)^2
+  =
+  \sum_{i \in \mathcal{N}_0} (y_i - \beta_0)^2,
+\end{equation*}
+
+The minimizer for this expression is $\beta_0 = \frac{1}{K} \sum_{i \in \mathcal{N}_0} y_i = \bar{y}_{\mathcal{N}_0}$.
+Here we have denoted $\bar{y}_{\mathcal{N}_0}$ as the mean of the responses of the $K$ nearest neighbours to $\vec{x}_0$.
+This results in the following predictor
 
 $$
-\beta_1 \leftarrow 0 \\
-\beta_2 \leftarrow 0 \\
-K_{i0} \leftarrow \frac{1}{K} I(i \in \mathcal{N}_0), 
+  \hat{f}(\vec{x}_0) = \bar{y}_{\mathcal{N}_0},
 $$
 
-it yields the following
-
-$$
-\sum_{i = 1}^n K_{i0}(y_i - \beta_1 x_i - \beta_2x_i^2)^2
-=
-\frac{1}{K} \sum_{i \in \mathcal{N}_0} y_i,
-$$
-
-which is the definition of KNN-regression. Here $\mathcal{N}_0$ is the index set for the $K$ nearest neighbours to $x_0$, measured in Euclidean distance.
+which is in fact the predictor of a KNN-regression.
 
 **Q4:** Describe how you can perform model selection in regression with AIC as criterion.
 
