@@ -9,7 +9,7 @@ output:
     keep_tex: true
 header-includes:
   - \usepackage{fontspec}
-  - \setmonofont{DejaVu Sans Code}
+  - \setmonofont{DejaVu Sans Mono}
   - \makeatletter
   - \def\verbatim@nolig@list{}
   - \makeatother
