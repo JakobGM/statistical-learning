@@ -1116,14 +1116,22 @@ Lastly, if it is greater than one, it lies on the wrong side of the *hyperplane*
 
 $C$ is here a tuning parameter that restricts the optimization algorithm in its pursuit of the widest possible margin, as the aggregate sum of the slack variables can't exceed this limit. With other words, no more than $C$ training observations may be wrongly classified.
 
+### Parameter selection
+
+The tuning parameter $C$ will again be found with a grid search (actually a line search) with 10-fold cross validation with accuracy as the selection metric yet again.
+We will search over the points $\vec{C} = [0.001, 0.01, 0.1, 1, 2, 3, 4, 5, 10, 30]$.
 
 ```{r}
 svm_tune_grid <- expand.grid(
-  C = c(0.001, 0.01, 0.1, 1, 5, 10, 100)
+  C = c(0.001, 0.01, 0.1, 1, 2, 3, 4, 5, 10, 30)
 )
 ```
 
-```{r}
+### Fitting the model
+
+We will now perform the grid search and retrieve the best model.
+
+```{r, cache = TRUE}
 set.seed(0)
 svm_model <- caret::train(
   form = diabetes ~ .,
@@ -1135,15 +1143,25 @@ svm_model <- caret::train(
 )
 ```
 
+Notice that we decided to standardize the covariates in the `preProcess` parameter.
+This is important since the euclidean norm is involved in the optimization, and we do not want the covariates with the greater variance to dominate the distance measures.
+
+The result of the line search can now be plotted.
+
 ```{r}
 svm_plot <- plot(svm_model, xTrans = log)
-svm_plot$xlab = expression(log(cost))
+svm_plot$xlab = expression(log(C))
 svm_plot
 ```
+
+We have here logarithmically transformed the $C$-axis.
+$C = 1$ seems to be the tuning parameter that wins out, and this can be verified
 
 ```{r}
 svm_model$bestTune
 ```
+
+Yes, $C = 1$ is the parameter that we end up choosing.
 
 ```{r}
 svm_predictions <- predict(
