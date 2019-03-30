@@ -1053,7 +1053,52 @@ roc(
 Here we see that the ROC curve is far from being diagonal and $\text{AUC} = 0.84 > 0.5$, which a random guessing model would have.
 It can be considered to have explaining power.
 
-* one method from Module 9: Support vector machines and, finally
+## Module 9: Support vector machines
+
+```{r}
+set.seed(0)
+svm_tune_grid <- expand.grid(
+  C = c(0.001, 0.01, 0.1, 1, 5, 10, 100)
+)
+```
+
+```{r}
+svm_model <- caret::train(
+  form = diabetes ~ .,
+  data = ctrain,
+  method = "svmLinear",
+  trControl = cross_validation,
+  preProcess = c("center", "scale"),
+  tuneGrid = svm_tune_grid
+)
+```
+
+```{r}
+svm_plot <- plot(svm_model, xTrans = log)
+svm_plot$xlab = expression(log(cost))
+svm_plot
+```
+
+```{r}
+svm_model$bestTune
+```
+
+```{r}
+ctest$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
+svm_predictions <- predict(
+  svm_model,
+  ctest
+)
+svm_confmat <- confusionMatrix(
+  data = svm_predictions,
+  reference = ctest$diabetes
+)
+svm_confmat
+```
+
+
+
+
 * one method from Module 11: Neural networks
 
 For each method you 
