@@ -43,6 +43,7 @@ dtest <- all$dtest
 We choose `logprice` as the response variable, since we postulate that diamond qualities have a *multiplicative* effect on the price, not *additive*. A logarithmic response will result in such an interpretation of the regression coefficients. We now create the plots as instructed.
 
 ```{r}
+library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(tibble)
@@ -813,6 +814,8 @@ This is okay for the covariates, as they are considered to be numeric, but we pr
 ```{r}
 ctrain$diabetes <- as.factor(ctrain$diabetes)
 ctest$diabetes <- as.factor(ctest$diabetes)
+ctrain$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
+ctest$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
 ```
 
 Otherwise, we can see that one third of the observations have `diabetes = 1`.
@@ -889,13 +892,14 @@ logistic_model <- bestglm(
 
 # Create diabetes predictions
 logistic_predictions <- predict(logistic_model, ctest, type = "response") %>%
-  map_dbl(~ .x > 0.5) %>%
-  as.factor()
+  map_lgl(~ .x > 0.5) %>%
+  if_else("diabetes", "healthy") %>%
+  as_factor()
 
 # Create confusion matrix
 logistic_confmat <- confusionMatrix(
   data = logistic_predictions,
-  reference = ctest$diabetes %>% as.factor()
+  reference = ctest$diabetes
 )
 print(logistic_confmat)
 ```
@@ -973,7 +977,6 @@ We can now instruct caret to train a boosted tree model with a search upon this 
 The model with the best cross-validated accuracy is chosen.
 
 ```{r, cache = TRUE}
-ctrain$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
 boost_model <- caret::train(
   form = diabetes ~ .,
   data = ctrain,
@@ -1022,8 +1025,9 @@ boost_probabilities <- predict(
   ) %>%
   pull(diabetes)
 boost_predictions <- boost_probabilities %>%
-  map_dbl(~ .x > 0.5) %>%
-  as.factor()
+  map_lgl(~ .x > 0.5) %>%
+  if_else("diabetes", "healthy") %>%
+  as_factor()
 
 boost_confmat <- confusionMatrix(
   data = boost_predictions,
@@ -1084,7 +1088,6 @@ svm_model$bestTune
 ```
 
 ```{r}
-ctest$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
 svm_predictions <- predict(
   svm_model,
   ctest
