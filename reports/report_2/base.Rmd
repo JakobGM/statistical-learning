@@ -1059,6 +1059,40 @@ It can be considered to have explaining power.
 
 ## Module 9: Support vector machines
 
+We will now implement a *support vector machine* with a *linear kernel* for the diabetes data set.
+
+### How it works
+
+First off, let us notationally recode the `diabetes` response vector such that $y_i = 1$ indicates a patient with diabetes, as before, but $y_i = -1$ for non-diabetes patients.
+Now, define a $p$-dimensional *hyperplane* as
+
+\begin{equation*}
+  \beta_0 + \vec{x}^T \vec{\beta} = 0,
+\end{equation*}
+
+where $\vec{\beta} = [\beta_1, ..., \beta_p]^T$ is the plane's normal vector.
+Assuming that $||\vec{\beta}||_2 = 1$, then the value of $\beta_0 + \vec{x}_i^T \vec{\beta}$ gives the distance from the plane to $\vec{x}_i$.
+The value is positive if the point $\vec{x}_i$ lies on *one* side of the hyperplane, while it is negative if it lies on the *other* side.
+Now the idea is to find a hyperplane which satisfies
+
+\begin{equation*}
+  y_i(\beta_0 + \vec{x}_i^T \vec{\beta}) > 0,
+\end{equation*}
+
+such that we can construct a classifier for a new observation $\vec{x_0}$ as
+
+\begin{equation*}
+  \hat{f}(x)
+  =
+  \begin{cases}
+    1&, \text{ if } \beta_0 + \vec{x_0}^T \vec{\beta} > 0 \\
+    -1&, \text{ otherwise.}
+  \end{cases}
+\end{equation*}
+
+Ideally we would like to find a *maximal margin hyperplane* which perfectly divides the two classes of observations from each other and is the farthest away from the training observations as possible. This distance is what we call the *margin*, and we denote this length as $M$.
+
+
 ```{r}
 set.seed(0)
 svm_tune_grid <- expand.grid(
