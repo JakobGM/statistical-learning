@@ -913,8 +913,8 @@ Here is how it works algorithmically:
   \item Set $\hat{f}^{(0)}(x) = 0$ and $r_i = y_i$ for all $i$ in the training set.
   \item For $b = 1, 2, ..., B$, repeat:
   \begin{enumerate}
-    \item Fit a \textit{new} $\hat{f}^{(b)}$ with $d$ splits, from the residuals of $\hat{f}^{(b - 1)}$. This results in $d + 1$ leaf nodes.
-    \item Update $\hat{f}$ by adding a shrunken down version of this new tree: $$\hat{f} \leftarrow \hat{f} + \lambda \hat{f}^{(b)}$$.
+    \item Fit a \textit{new} $\hat{f}^{(b)}$ with $d$ splits, from the remaining residuals of the previous iteration. This results in $d + 1$ leaf nodes.
+    \item Update $\hat{f}$ by adding a shrunken down version of this new tree: $$\hat{f} \leftarrow \hat{f} + \lambda \hat{f}^{(b)}$$
     \item Update the residuals, $$r_i \leftarrow r_i - \lambda \hat{f}^{(b)}(x_i)$$
   \end{enumerate}
   \item The boosted model is $\hat{f}(x) = \sum_{b = 1}^B \lambda \hat{f}^{(b)}(x)$.
@@ -1016,7 +1016,7 @@ We can calculate the confusion matrix of this model tested against our test data
 
 ```{r}
 boost_probabilities <- predict(
-    boost_tuning,
+    boost_model,
     newdata = ctest,
     type = "prob"
   ) %>%
