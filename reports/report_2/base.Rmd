@@ -1092,15 +1092,39 @@ such that we can construct a classifier for a new observation $\vec{x_0}$ as
 
 Ideally we would like to find a *maximal margin hyperplane* which perfectly divides the two classes of observations from each other and is the farthest away from the training observations as possible. This distance is what we call the *margin*, and we denote this length as $M$.
 
+Now in practice, such a perfect dividing hyperplane seldom exists.
+We must allow some training observations to lie within this margin or even lie on the wrong side of the hyperplane.
+We introduce the concept of *slack* in order to formulate an optimization problem that finds a *soft-margin classifier* instead
+
+\begin{align*}
+  \underset{
+    \beta_0, ..., \beta_p, \epsilon_1, ..., \epsilon_n
+  }{
+    \text{argmax}
+  }&
+  M, \text{ subject to...} \\
+  ||\vec{\beta}||_2 =& 1, \\
+  y_i (\beta_0 + \vec{\beta}^T \vec{x}_i) \geq& M(1 - \epsilon_i),
+  &\left( \forall i = 1, ..., n \right) \\
+  \epsilon_i \geq& 0, \\
+  \sum_i^n \epsilon_i \leq& C.
+\end{align*}
+
+$\epsilon_1, ..., \epsilon_n$ are the *slack variables* which allows the optimization algorithm to place points on the wrong side of the margin.
+If $\epsilon_i$ equals zero, the observation lies on the right side of the *margin*, and if it is greater than zero it does not.
+Lastly, if it is greater than one, it lies on the wrong side of the *hyperplane* and will therefore be wrongly classified.
+
+$C$ is here a tuning parameter that restricts the optimization algorithm in its pursuit of the widest possible margin, as the aggregate sum of the slack variables can't exceed this limit. With other words, no more than $C$ training observations may be wrongly classified.
+
 
 ```{r}
-set.seed(0)
 svm_tune_grid <- expand.grid(
   C = c(0.001, 0.01, 0.1, 1, 5, 10, 100)
 )
 ```
 
 ```{r}
+set.seed(0)
 svm_model <- caret::train(
   form = diabetes ~ .,
   data = ctrain,
