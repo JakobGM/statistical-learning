@@ -1163,6 +1163,10 @@ svm_model$bestTune
 
 Yes, $C = 1$ is the parameter that we end up choosing.
 
+### Model assessment
+
+We can now calculate the confusion matrix of this model against our test set.
+
 ```{r}
 svm_predictions <- predict(
   svm_model,
@@ -1174,6 +1178,11 @@ svm_confmat <- confusionMatrix(
 )
 svm_confmat
 ```
+
+The resulting accuracy is $\approx 79.74\%$, with a sensitivity of approximately $91\%$ and specificity of $57\%$.
+The model is therefore pretty good at predicting diabetes for diabetes patients but it has a relatively high false positive rate.
+If the downside of not detecting diabetes is much worse than the downside of predicting diabetes for a patient that is really healthy, this could be considered a good model.
+If the opposite is the case, then it can be considered a bad model.
 
 
 
