@@ -1187,7 +1187,60 @@ If the opposite is the case, then it can be considered a bad model.
 
 
 
-* one method from Module 11: Neural networks
+## Module 11: Neural networks
+
+```{r}
+nn_tune_grid <- expand.grid(
+  size = seq(from = 1, to = 11, by = 1),
+  decay = seq(from = 0, to = 0.5, by = 0.1)
+) 
+```
+
+[center](https://stackoverflow.com/a/4674770/11009311)
+
+```{r}
+set.seed(42)
+nn_model <- caret::train(
+  diabetes ~ .,
+  data = ctrain,
+  method = "nnet",
+  preProcess = c("center", "scale"),
+  trControl = cross_validation,
+  tuneGrid = nn_tune_grid,
+  linout = FALSE,
+  trace = FALSE
+)
+```
+
+```{r}
+plot(nn_model)
+```
+
+```{r}
+nn_model$bestTune
+```
+
+```{r}
+summary(nn_model$finalModel)
+```
+
+[plot method](https://gist.github.com/Peque/41a9e20d6687f2f3108d)
+
+```{r}
+library(devtools)
+source_url('https://gist.githubusercontent.com/Peque/41a9e20d6687f2f3108d/raw/85e14f3a292e126f1454864427e3a189c2fe33f3/nnet_plot_update.r')
+plot.nnet(nn_model$finalModel)
+```
+
+```{r}
+nn_predictions <- predict(nn_model, ctest) 
+nn_confmat <- confusionMatrix(
+  data = nn_predictions,
+  reference = ctest$diabetes,
+) 
+nn_confmat
+```
+
 
 For each method you 
 
