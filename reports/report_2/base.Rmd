@@ -1190,6 +1190,60 @@ If the opposite is the case, then it can be considered a bad model.
 
 ## Module 11: Neural networks
 
+We will now implement a *single-hidden-layer neural network* for the data set.
+
+### How it works
+
+The explanation for how a neural network works is best accompanied with an illustration, see figure \ref{fig:img/nnet}.
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=0.5\linewidth]{img/nnet.png}
+  \caption{Single-hidden-layer neural network}
+  \label{fig:img/nnet}
+\end{figure}
+
+The blue $x_i$ nodes on the left hand side in the figure are the so-called *input nodes*.
+In our case, this is `bmi`, `glu` and so on.
+The `bias` nodes represent constant intercepts.
+
+The input data is fed into the hidden layer nodes by weighted summation.
+Each arrow is a term in the sum, with an associated weight $\alpha_{jm}$.
+The hidden node applies a *hidden layer activation* function $\phi_h$ on the input before it sends it forward into the next layer.
+So the input to the hidden layer node $z_i$ therefore becomes
+
+\begin{equation*}
+  z_i(\vec{x})
+  =
+  \phi_h \left(
+    \alpha_{0i} + \sum_{j = 1}^{p} \alpha_{ji} x_j
+  \right)
+\end{equation*}
+
+We will use the *sigmoid function* as the activation function:
+
+\begin{equation*}
+  \phi_h(x) = \frac{1}{1 + \text{exp}(-x)} 
+\end{equation*}
+
+Since we have a single-hidden-layer network, the hidden nodes feed their output to the *output layer* in the same fashion, together with a new bias node and new weights $\beta_{mc}$.
+The output activation function, $\phi_o$, must also be chosen and we use the sigmoid function yet again, $\phi_o = \phi_h$.
+In our case, we only have one node in the output layer, as we have a binary classification problem
+The value of the output node therefore becomes
+
+\begin{equation*}
+  \hat{y}_1
+  =
+  \phi_0 \left(
+    \beta_{01} + \sum_{j = 1}^{w} \beta_{j1} z_j
+  \right)
+\end{equation*}
+
+Here $w$ denotes the number of nodes in the hidden layer, often called the *width* of the neural network.
+This is a tuning parameter.
+Generally, you would also be able to add additional hidden layers to the network, increasing its *width*.
+But the \texttt{R}-package `nnet` only support single-hidden-layer networks, so we will not be able to tune this parameter.
+
 ```{r}
 nn_tune_grid <- expand.grid(
   size = seq(from = 1, to = 11, by = 1),
@@ -1199,7 +1253,7 @@ nn_tune_grid <- expand.grid(
 
 [center](https://stackoverflow.com/a/4674770/11009311)
 
-```{r}
+```{r, cache = TRUE}
 set.seed(42)
 nn_model <- caret::train(
   diabetes ~ .,
@@ -1213,7 +1267,7 @@ nn_model <- caret::train(
 )
 ```
 
-```{r}
+```{r, fig.align = "center"}
 plot(nn_model)
 ```
 
@@ -1234,6 +1288,7 @@ plot.nnet(nn_model$finalModel)
 ```
 
 ```{r}
+nn_probabilities <- predict(nn_model, ctest, type = "prob") 
 nn_predictions <- predict(nn_model, ctest) 
 nn_confmat <- confusionMatrix(
   data = nn_predictions,
