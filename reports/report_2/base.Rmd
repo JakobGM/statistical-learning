@@ -941,6 +941,7 @@ We will use 10-fold cross validation in conjunction with a grid search in order 
 The \texttt{R}-package `caret` enables us to specify the cross validation with `trainControl()`:
 
 ```{r, cache = TRUE}
+library(caret)
 cross_validation <- trainControl(
   method = "cv",
   number = 10,
