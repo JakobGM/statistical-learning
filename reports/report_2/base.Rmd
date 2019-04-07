@@ -42,7 +42,7 @@ dtest <- all$dtest
 
 We choose `logprice` as the response variable, since we postulate that diamond qualities have a *multiplicative* effect on the price, not *additive*. A logarithmic response will result in such an interpretation of the regression coefficients. We now create the plots as instructed.
 
-```{r}
+```{r, fig.fullwidth = TRUE, fig.width = 6, fig.align = "center", fig.height = 6, fig.cap = "\\label{fig:boxplot}Boxplot for categorical covariates: clarity, color, and cut. Plotted against logprice on the y-axis."}
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
@@ -56,21 +56,21 @@ dall <- bind_rows(dtrain, dtest)
 dall %>%
   gather(key, value, c("cut", "color", "clarity")) %>%
   ggplot(aes(y = logprice)) +
-  geom_point(aes(x = value), alpha = 0.3) +
-  facet_grid(.~key, scales = "free")
+  geom_boxplot(aes(x = value, col = key), alpha = 0.3) +
+  facet_wrap(.~key, scales = "free", nrow=3)
 ```
 
-```{r}
+```{r, fig.cap = "\\label{fig:scatterplot}Scatterplot of carat and logcarat on the x-axis plotted against logprice on the y-axis."}
 # Plot continuous covariates
 dall %>%
   gather(key, value, c("carat", "logcarat")) %>%
   ggplot(aes(y = logprice)) +
-  geom_point(aes(x = value)) +
+  geom_point(aes(x = value), alpha = 0.5) +
   facet_grid(.~key, scales = "free")
 ```
 
-We observe that `logcarat` *seems* to be the covariate that has the most linear correlation with `logprice`, while `carat` does not.
-It is difficult to see any clear trends in the plots of the categorical covariates `clarity`, `color`, and `cut`.
+From figure \ref{fig:scatterplot} further down we observe that `logcarat` *seems* to be the covariate that has the most linear correlation with `logprice`, while `carat` does not.
+It is difficult to see any clear trends in the plots of the categorical covariates `clarity`, `color`, and `cut` in figure \ref{fig:boxplot}, also further down.
 
 **Q2:** What is the predicted price of a diamond weighting 1 carat. Use the closest 20% of the observations. 
 
@@ -126,20 +126,30 @@ which is in fact the predictor of a KNN-regression.
 The Akaike Information Criterion (AIC) is defined as
 
 $$
-\text{AIC} := -2 \cdot l(\hat{\beta}_M, \tilde{\sigma}^2) +2(\lvert M\rvert +1),
+\text{AIC} := -2 \cdot \ell(\hat{\beta}_M, \tilde{\sigma}^2) +2(\lvert M\rvert +1),
 $$
 
-where $\hat{\beta}_M$ is the estimated coefficient vector for a model with $M$ regression parameters, and $l(\cdot)$ is the logarithm of the maximum likelihood estimator for that model.
+where $\hat{\beta}_M$ is the estimated coefficient vector for a model with $M$ regression parameters, and $\ell(\cdot)$ is the logarithm of the maximum likelihood for that model.
 How you calculate the maximum likelihood depends on what type of regression you perform.
 We use $|M| + 1$, because we have to add the estimated variance of the error terms $\epsilon_i$.
+For linear regression, $AIC$ becomes:
+
+$$
+\text{AIC}
+= \frac{1}{n\hat{\sigma}^2}
+(\text{RSS} + 2d\hat{\sigma}^2)
+$$
+
 
 When we do model selection, i.e. picking between different candidate models, we can pick the model with the *lowest* value for AIC.
 
 **Q5:** What are the main differences between using AIC for model selection and using cross-validation (with mean squared test error MSE)?
 
-Here are the main differences:
+AIC estimates the test $\text{MSE}$ by just adding a complexity penalty to the $\text{RSS}$, in order to adjust for overfitting. In cross-validation test $\text{MSE}$ is estimated numerically by the use of training and validation sets.
 
-* CV requires you to split your data set into *training* and *testing* subsets. This results in smaller sample sizes for fitting the models, and can result in an overestimation of the validation set error.
+Here are some advantages/disadvantages:
+
+* CV requires you to split your data set into *training* and *testing* subsets. This results in smaller sample sizes for fitting the models, and can result in an overestimation of errors.
 * CV test MSE can have high variability for smaller sample sizes, since it is dependent on which observations are included/excluded.
 
 **Q6:** See the code below for performing model selection with `bestglm()` based on AIC. What kind of contrast is used to represent `cut`, `color` and `clarity`? Write down the final best model and explain what you can interpret from the model.
@@ -167,18 +177,32 @@ From the summary we can see that `cut`, `color`, and `clarity` are *dummy coded*
 The final best model is `logprice ~ 1 + logcarat cut + color + clarity + xx`, or in mathematical form
 
 $$
-\texttt{logprice}_i
-= \\
-  \beta_0 \\
-  + \beta_1 \cdot x_{i, \texttt{logcarat}} \\
-  + \beta_2 \cdot x_{i, \texttt{cutGood}} + ... + \beta_5 \cdot x_{i, \texttt{cutIdeal}} \\
-  + \beta_6 \cdot x_{i, \texttt{colorE}} + ... + \beta_{11} \cdot x_{i, \texttt{colorJ}} \\
-  + \beta_{12} \cdot x_{i, \texttt{claritySI2}} + ... + \beta_{18} \cdot x_{i, \texttt{clarityIF}} \\
-  + \beta_{19} \cdot x_{\texttt{xx}} \\
-  + \epsilon_i.
+\begin{split}
+\widehat{\text{log}(\text{price})}_i
+= &\hat\beta_0
++ \hat\beta_\text{logcarat} x_{i,\text{logcarat}}\\
+&+ \hat\beta_\text{cutGood} x_{i,\text{cutGood}}
++ \hat\beta_\text{cutVeryGood} x_{i,\text{cutVeryGood}}
++ \hat\beta_\text{cutPremium} x_{i,\text{cutPremium}}
++ \hat\beta_\text{cutIdeal} x_{i,\text{cutIdeal}}\\
+&+ \hat\beta_\text{colorE} x_{i,\text{colorE}}
++ \hat\beta_\text{colorF} x_{i,\text{colorF}}
++ \hat\beta_\text{colorG} x_{i,\text{colorG}}\\
+&+ \hat\beta_\text{colorH} x_{i,\text{colorH}}
++ \hat\beta_\text{colorI} x_{i,\text{colorI}}
++ \hat\beta_\text{colorJ} x_{i,\text{colorJ}}\\
+&+ \hat\beta_\text{claritySI2} x_{i,\text{claritySI2}}
++ \hat\beta_\text{claritySI1} x_{i,\text{claritySI1}}
++ \hat\beta_\text{clarityVS2} x_{i,\text{clarityVS2}}
++ \hat\beta_\text{clarityVS1} x_{i,\text{clarityVS1}}\\
+&+ \hat\beta_\text{clarityVVS2} x_{i,\text{clarityVVS2}}
++ \hat\beta_\text{clarityVVS1} x_{i,\text{clarityVVS1}}
++ \hat\beta_\text{clarityIF} x_{i,\text{clarityIF}}
++ \hat\beta_\text{xx} x_{i,\text{xx}}\\
+\end{split}
 $$
 
-A `price` prediction for the covariate vector $\vec{x}_0$ is constructed in the following manner
+A `price` prediction for a covariate vector $\vec{x}_0$ is constructed in the following manner
 
 $$
 \widehat{\texttt{logprice}}
@@ -187,18 +211,19 @@ $$
 \implies
 \widehat{\texttt{price}}
 =
-10^{\vec{\hat{\beta}}^T \vec{x}_0} = 10^{\beta_0} \cdot \prod_{i = 1}^{19} 10^{\beta_i \vec{x}_{0,i}}.
+10^{\vec{\hat{\beta}}^T \vec{x}_0} = 10^{\beta_0} \cdot \prod_{i = 1}^{19} 10^{\beta_i x_{0,i}}.
 $$
 
-The tenth power of the regression coefficients are therefore of interest.
+Ten to the power of the regression coefficients are therefore of interest.
 
 ```{r}
 library(kableExtra)
 beta_hat <- coefficients(fit)
-10^beta_hat %>% kable(col.names = "$10^{\\hat{\\beta}_i}$")
+10^beta_hat %>% kable(col.names = "$10^{\\hat{\\beta}_i}$", format = "pandoc")
 ```
 
-Several things can be interpreted from this. The `(Intercept)` represents a 1 carat diamond, i.e. 0 `logcarat`, with a *fair* cut, *D* color category, and *I1* clarity category. Such a diamond is predicted to cost $\simeq$ \$968 USD.
+Several things can be interpreted from this. The `(Intercept)` represents a 1 carat diamond, i.e. 0 `logcarat`, with a *fair* cut, *D* color category, 0 mm in length, and *I1* clarity category. Such a diamond is predicted to cost $\simeq$ \$968 USD.
+Such a diamond clearly does not exist.
 All other covariates must be interpreted *relative to* this "reference diamond". For instance, since $10^{\vec{\hat{\beta}}_{\texttt{cutIdeal}}} \approx 1.135$, we would expect a diamond with an *ideal cut* to cost 13.5\% more than the "reference diamond", all other properties being equal.
 
 **Q7:** Calculate and report the MSE of the test set using the best model (on the scale of `logprice`).
@@ -225,7 +250,7 @@ model_matrix <- model.matrix(
 
 Since we use dummy coding of categorical covariates, each covariate with $c$ categories result in $c - 1$ columns in the design matrix.
 But in this case, we have no intercept, so one of the categorical covariates will have $c$ columns, one for each covariate.
-We have 3 categorical variables, with 5, 8, and 7 categories. This results in 17 columns, instead of 16 if we had an intercept in our model.
+We have 3 categorical variables, with 5, 8, and 7 categories. This results in 18 columns, instead of 17 if we had an intercept in our model.
 In addition, we have 6 continuous covariates.
 All together this results in 24 columns in the design matrix and $n$ rows, where $n$ equals the number of observations, in this case $5000$.
 To confirm, we can check
@@ -245,6 +270,7 @@ In order to choose a suitable value for the tuning parameter $\lambda$, we use 1
 
 ```{r}
 library(glmnet)
+set.seed(0)
 cv.out <- cv.glmnet(
   x = model_matrix,
   y = dtrain$logprice,
@@ -267,7 +293,18 @@ print(cv.out$lambda.min)
 print(cv.out$lambda.1se)
 ```
 
-The chosen regularization parameter is therefore $\lambda \approx 5.2 \cdot 10^{-4}$, which is within one standard deviation of $\lambda_{\text{min}} \approx 1.2 \cdot 10^{-4}$.
+The chosen regularization parameter is therefore $\lambda \approx 4.3 \cdot 10^{-4}$, which is within one standard deviation of $\lambda_{\text{min}} \approx 1.2 \cdot 10^{-4}$.
+
+The resulting degrees of freedom in this model is:
+
+```{r}
+best_index <- which(cv.out$glmnet.fit$lambda == cv.out$lambda.1se)
+degrees_of_freedom <- cv.out$glmnet.fit$df[best_index]
+print(degrees_of_freedom)
+```
+
+Which means that two of the regression coefficients are set to zero, and only 22 remain.
+
 
 **Q10:** Calculate and report the MSE of the test set (on the scale of `logprice`).
 
@@ -282,7 +319,7 @@ lasso_test_mse <- mean((dtest$logprice - predictions) ^ 2)
 print(lasso_test_mse)
 ```
 
-The test MSE is $\approx 3.88 \cdot 10^{-3}$ on the scale of `logprice`.
+The test MSE is $\approx 3.81 \cdot 10^{-3}$ on the scale of `logprice`.
 
 
 **Q11:** A regression tree to model is built using a _greedy_ approach. What does that mean? Explain the strategy used for constructing a regression tree.
@@ -321,17 +358,21 @@ $$
 $$
 
 We choose $(j, s)$ recursively without backtracking (thus greedy), until some stopping criterion is reached.
-The stopping criterion can the number of members of the resulting region being small enough, or when the reduction in RSS is smaller than some threshold.
+The stopping criterion can be when the number of members of the resulting region is small enough, or when the reduction in RSS is smaller than some threshold.
 
 **Q12:** Is a regression tree a suitable method to handle both numerical and categorical covariates? Elaborate.
 
-Yes, regression trees can handle mixed features, which is one of its advantages.
-Instead of deciding node traversal by a "less than" operator, as in the numerical case, a decision can be made by a "containment" operator in the categorical case. For instance if $x_j$ is a categorical covariate representing if a patient is smoking (coded as $1$) or not (coded as $0$), a splitting criterion could be
+Regression trees can handle categorical covariates as well, but there is now a change in how we view cut-points. In the numerical case, for a choice of region $R_k$ and a predictor $X_j$, there exists at most $|R_k|-1$ cut-points that will result in unique partitions of the region.
 
-\begin{gather*}
-  R_1 = \{ \vec{x}~|~x_j = 1 \} \\
-  R_2 = \{ \vec{x}~|~x_j = 0 \}.
-\end{gather*}
+For a categorical covariate the number of cut-points depends on the number of levels $l$ in the covariate, and if there is a sensible ordering of them. For example if the covariate is age demographic, then it makes sense to just use cut-points of the same type as in the numerical case. This results in at most $l-1$ cut-points per region.
+
+However, lacking such order as in the case of e.g. job type, this definition of a cut-point stops making sense. What should be done now is to consider all ways of partitioning the levels into two non-empty subsets $R_1$ and $R_2$. This changes the branching criteria from evaluating if $x_i < s$ to checking if $x_i \in L_1$. The number of "cut-points" per region thus becomes, in the worst case,
+
+$$
+\frac{1}{2}\sum\limits_{i=1}^{l-1}{l\choose i} = 2^{l-1}-1
+$$
+
+and checking each one of them quickly becomes intractable as $l$ increases. Using regression trees in such cases should therefore be done with care.
 
 **Q13:** Fit a (full) regression tree to the diamond data with `logprice` as the response (and the same covariates as for c and d), and plot the result. Comment briefly on you findings.
 
@@ -369,7 +410,7 @@ partition.tree(plot_tree, cex = 0.4)
 ```
 
 The length of the edges in the tree on the left hand side are proportional to the reduction in RSS.
-We can see that the first split, $\texttt{yy} < 5.665$, by far reduces the RSS the most. The tree algorithm also decides that *above* this split, only $\texttt{yy}$ matters, and $\texttt{xx}$ is ignored. The greater $\texttt{xx}$ and $\texttt{yy}$ is, the greater the price prediction.
+We can see that the first split, $\texttt{yy} < 5.665$, by far reduces the RSS the most. The tree algorithm also decides that *above* this cut-point (to the right in the tree), only $\texttt{yy}$ matters, and $\texttt{xx}$ is ignored. The greater $\texttt{xx}$ and $\texttt{yy}$ is, the greater the predicted price.
 Lastly, it is interesting that solely $\texttt{xx}$ and $\texttt{yy}$ are chosen, all of the other covariates have been discarded. Using this model as a human is quite easy, as there are only two covariates to consider.
 
 
@@ -1194,6 +1235,8 @@ We will now implement a *single-hidden-layer neural network* for the data set.
 
 ### How it works
 
+#### Structure of the neural network
+
 The explanation for how a neural network works is best accompanied with an illustration, see figure \ref{fig:img/nnet}.
 
 \begin{figure}[htpb]
@@ -1227,7 +1270,7 @@ We will use the *sigmoid function* as the activation function:
 \end{equation*}
 
 Since we have a single-hidden-layer network, the hidden nodes feed their output to the *output layer* in the same fashion, together with a new bias node and new weights $\beta_{mc}$.
-The output activation function, $\phi_o$, must also be chosen and we use the sigmoid function yet again, $\phi_o = \phi_h$.
+The output activation function, $\phi_o$, must also be chosen and we use the sigmoid function yet again, i.e. $\phi_o = \phi_h$.
 In our case, we only have one node in the output layer, as we have a binary classification problem
 The value of the output node therefore becomes
 
@@ -1243,6 +1286,45 @@ Here $w$ denotes the number of nodes in the hidden layer, often called the *widt
 This is a tuning parameter.
 Generally, you would also be able to add additional hidden layers to the network, increasing its *width*.
 But the \texttt{R}-package `nnet` only support single-hidden-layer networks, so we will not be able to tune this parameter.
+
+
+#### The optimization problem
+
+Now, how do we decide the weights of the edges, $\vec{\theta} := [\alpha\text{'s}, \beta\text{'s}]$?
+We want to maximize the log-likelihood of the statistical model.
+We define an objective function, $J(\vec{\theta})$, called *binary cross-entropy loss*, which is the negative of the binomial log likelihood in scaled form
+
+\begin{equation*}
+  J(\vec{\theta})
+  =
+  -\frac{1}{n}
+  \sum_{i = 1}^{n} \left( 
+    y_i \ln(\hat{y}_1(\vec{x}_i)) + (1 - y_i) \ln(1 - \hat{y}_1(\vec{x}_i))
+  \right)
+\end{equation*}
+
+We seek to find the $\vec{\theta}$ which maximizes this loss function.
+In practice, this is done with the `BFGS` method of `optim` by `nnet`.
+
+Additionally, we should mention that `nnet` supports adding a $L_2$-penalty, $\lambda$, to the loss function for regularization purposes.
+This is similar to what we have seen in ridge regression models earlier.
+The loss function therefore becomes
+
+\begin{equation*}
+  J(\vec{\theta})
+  =
+  -\frac{1}{n}
+  \sum_{i = 1}^{n} \left( 
+    y_i \ln(\hat{y}_1(\vec{x}_i)) + (1 - y_i) \ln(1 - \hat{y}_1(\vec{x}_i))
+  \right)
+  +
+  \frac{1}{n} \frac{\lambda}{2} ||\vec{\theta}||_2^2
+\end{equation*}
+
+In neural networks $\lambda$ is known as *weight decay*, and this is the second and last tuning parameter in this model.
+
+
+### Parameter selection
 
 ```{r}
 nn_tune_grid <- expand.grid(
