@@ -922,11 +922,18 @@ Skin thickness is highly correlated with obesity, which BMI is intended to measu
 
 **Q29:** Use different methods to analyse the data. In particular use 
 
-* one method from Module 4: Classification
+## Module 4: Classification
 
-We can choose between logistic regression, LDA, or QDA. The two latter methods assumes that the class-specific distributions of the covariates are approximately Gaussian. The boxplots and histograms in the `ggpairs`-plot show us that this assumption does not hold. We will therefore analyze the data using logistic regression.
+We can choose between logistic regression, LDA, or QDA.
+The two latter methods assumes that the class-specific distributions of the covariates are approximately Gaussian.
+The boxplots and histograms in the `ggpairs`-plot show us that this assumption does not hold.
+We will therefore analyze the data using logistic regression.
 
-The logistic regression method comes from the diagnostic paradigm of classification. This paradigm consists of methods where the goal is to estimate the posterior distribution $P(Y = k| X = x)$ for each class $k \in C$, where $C$ is the set of classes the response $Y$ can belong to. The diabetes classification is a two-class problem, $C = \{0,1\}$, and we write $P(Y_i = 1 | {\bf X} = {\bf x_i}) = p({\bf x_i})$ for brevity. Since we are modelling probabilities we need $p({\bf x_i}) \in [0,1]$. The most common function form used for achieving this is the sigmoid function $\sigma(x) = \frac{e^x}{1+e^x}$. Using this the logistic regression model becomes
+The logistic regression method comes from the diagnostic paradigm of classification.
+This paradigm consists of methods where the goal is to estimate the posterior distribution $P(Y = k| X = x)$ for each class $k \in C$, where $C$ is the set of classes the response $Y$ can belong to.
+The diabetes classification is a two-class problem, $C = \{0,1\}$, and we write $P(Y_i = 1 | {\bf X} = {\bf x_i}) = p({\bf x_i})$ for brevity.
+Since we are modelling probabilities we need $p({\bf x_i}) \in [0,1]$.
+The most common function form used for achieving this is the sigmoid function $\sigma(x) = \frac{e^x}{1+e^x}$. Using this the logistic regression model becomes
 
 \begin{equation*}
   p(\vec{x}_i)
@@ -953,13 +960,19 @@ The logistic regression method comes from the diagnostic paradigm of classificat
 
 With $P(Y_i = 0 | {\bf X} = {\bf x_i}) = 1 - p({\bf x_i})$. The coefficients ${\bf \beta}$ are now estimated using MLE, where the coefficients that maximizes the likelihood function
 
-\begin{equation*}
+\begin{align*}
+  \hat{\beta}
+  &=
+  \underset{\beta}{\mathrm{argmax}}
+  ~
   \ell(\vec{\beta}; \vec{x}, \vec{y})
-  =
+  \\
+  \ell(\vec{\beta}; \vec{x}, \vec{y})
+  &=
   \prod \limits_{i = 1}^{n}
   p\left(x_i \mid \vec{\beta}\right)^{y_i}
   (1 - p\left(x_i \mid \vec{\beta})\right)^{1 - y_i}
-\end{equation*}
+\end{align*}
 
 are chosen.
 
@@ -991,6 +1004,14 @@ logistic_model <- bestglm(
   use_series(BestModel)
 ```
 
+We can take a look at the resulting model with `summary()`:
+
+```{r}
+summary(logistic_model)
+```
+
+The resulting model formula is `diabetes ~ npreg + glu + bmi + ped + age` where only `npreg` and `age` are considered insignificant at a significance level of $\alpha = 0.05$, but significant at $\alpha = 0.1$.
+
 To interpret the fitted model it is useful to define the notion of odds. This is just the ratio of the estimated probabilities of the two classes. After taking the logarithm of the odds, and doing some algebraic manipulation we get that
 
 \begin{equation*}
@@ -1004,8 +1025,12 @@ To interpret the fitted model it is useful to define the notion of odds. This is
 which shows that the logodds is linear in the predictors. This means that by increasing one of the predictors $x_{ij}$ by one unit, while holding everything else constant, the predicted logodds will increase by $\hat{\beta}_j$ units. Equivalently, the odds will increase by a factor of $e^{\hat{\beta}_j}$.
 
 ```{r}
-summary(logistic_model)
+coefficients(logistic_model) %>%
+  exp() %>%
+  kable(format = "latex", col.names = c("exp(beta)"))
 ```
+
+Here we see, for instance, that for every additional pregnancy we expect a $\approx 12.1\%$ increase in the odds of having diabetes, everything else being equal.
 
 Under the Bayes classifier an observation $\vec{x}_i$ is assigned the class for which the predicted posterior is greater than 0.5. Using this, we can evaluate the performance of the model on the test set. The results are shown below, along with a plot of the $\text{ROC}$-curve and the corresponding $\text{AUC}$.
 
