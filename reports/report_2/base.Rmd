@@ -17,7 +17,7 @@ header-includes:
 
   - \usepackage{bm}
   - \usepackage[a]{esvect}
-  - \renewcommand{\vec}[1]{\vv{\bm{#1}}}
+  - \renewcommand{\vec}[1]{\boldsymbol{#1}}
 ---
 
 ```{r setup, include=FALSE}
@@ -431,7 +431,7 @@ The test MSE is $\approx 1.72 \cdot 10^{-2}$, a whole order of magnitude greater
 
 A problem with decision trees is that they often portray a large amount of variance, since small changes in the predictors will often result in very different trees. One solution to this problem is *bootstrap aggregation*, more commonly known as *bagging*.
 
-The idea is to draw a sufficiently large amount, $B$, bootstrap replicates from the training set and fit a tree, $\hat{f}_{b}(\vec{x})$, for every single replicate, $X_b$.
+The idea is to draw a sufficiently large amount, $B$, bootstrap samples from the training set and fit a tree, $\hat{f}_{b}(\vec{x})$, for every single replicate, $X_b$.
 The resulting predictor, $\hat{f}_{\text{avg}}(\vec{x})$ is the *average* of all those trees,
 
 $$
@@ -441,7 +441,7 @@ $$
 The motivation is this, assume that we have $B$ i.i.d. observations of the random variable $X$ with mean $\mu$ and variance $\sigma^2$. The unbiased mean estimator, $\bar{X} = \frac{1}{B} \sum_{b = 1}^B X_b$, has a variance of
 
 $$
-Var(\bar{X})
+\mathrm{Var}(\bar{X})
 =
 \mathrm{Var}\left( \frac{1}{B} \sum_{b = 1}^B X_b \right)
 =
@@ -450,23 +450,25 @@ $$
 
 The variance of the estimator is thus inversely proportional to the number of independent samples $B$. This effect can be *simulated* by generating $B$ bootstrap data sets; they are not completely independent but is better than nothing.
 
-Bagging is not the end all solution, however. If there is a really strong predictor in the training set, then this predictor will end up being used in the first split in all the bootstrap replicated trees.
-This results in the trees becoming highly correlated, and we lose much of the variance reduction which we expect from the averaging of the trees. A *random forest* aims to solve this by randomly removing a fraction of the covariates in each split, instead of using *all* the covariates as we do in *bagging*. This is intended to decorrelates the trees.
+Bagging is not the end all solution, however. If there is a really strong predictor in the training set, then this predictor will end up being used in the first split in most of the bootstrap replicated trees.
+This results in the trees becoming highly correlated, and we lose much of the variance reduction which we expect from the averaging of the trees. A *random forest* aims to solve this by randomly removing a fraction of the covariates in each split, instead of using *all* the covariates as we do in *bagging*. This is intended to decorrelate the trees.
 
 **Q16:** What are the parameter(s) to be set in random forest, and what are the rules for setting these?
 
 There are two parameters of interest when creating a *random forest*.
-The first is the number of trees, $B$. This is *not* a tuning parameter, however, and the larger the better. Pick a value that is sufficiently large while being computationally feasible.
+The first is the number of trees, $B$. This is *not* a tuning parameter, however, and the larger the better (ignoring computational cost). Pick a value that is sufficiently large while being computationally feasible.
 
-The other parameter is $m$, the number of covariates to be randomly kept in each split. First off, we require $m < p$, of course. For very correlated predictors, $m$ is chosen to be small.
-A good *a priori* rule-of-thumb is to choose $m \approx \sqrt{p}$ for classification and $m = p / 3$ for regression. This has been derived from simulations.
+The other parameter is $m$, the number of covariates to be considered in each split. First off, we require $m < p$, of course. For very correlated predictors, $m$ is chosen to be small.
+A good *a priori* rule-of-thumb is to choose $m \approx \sqrt{p}$ for classification and $m \approx p / 3$ for regression. This has been derived from simulations.
 
 **Q17:** Boosting is a popular method. What is the main difference between random forest and boosting?
 
-A random forest is created by averaging $B$ trees fitted in parallel with the use of bootstrapping. The trees not "care about" each other.
+A random forest is created by averaging $B$ trees fitted in parallel with the use of bootstrapping.
+The trees are built independently of each other.
 
-Boosting is different in that it is an *iterative* or *sequential* method. It first builds a decision tree with $d$ splits, and calculates the residuals of this tree.
-After this, a *new* tree is fitted on the residuals. The original tree is updated by adding a shrunken version of the new tree. This is repeated $B$ times, always fitting new trees on the new residuals.
+Boosting is different in that it is a *sequential* method.
+Trees are built sequentially, each fitted on the residuals of an accumulated model of the previous trees.
+For a more rigorous explanation, see the Module 8 part of **Q29**.
 
 **Q18:** Fit a random forest to the diamond data with `logprice` as the response (and the same covariates as before). Comment on your choice of parameter (as decribed in Q16).
 
@@ -477,15 +479,17 @@ library(randomForest)
 ```
 
 ```{r, cache = TRUE}
+set.seed(0)
 random_forest <- randomForest(
   diamond_formula,
   data = dtrain,
-  mtry = dim(model_matrix)[2] / 3,
+  ntree = 100,
+  mtry = 9 / 3,
   importance = TRUE
 )
 ```
 
-We have here chosen `mtry = 24 / 3 = 8` since we have a continuous response and this is a regression tree. With other words, we are using the rule-of-thumb $m = p / 3$.
+We have here chosen `mtry = 9 / 3 = 3` since we have a continuous response and this is a regression tree ($p = 9$). With other words, we are using the rule-of-thumb $m \approx p / 3$.
 
 **Q19:** Make a variable importance plot and comment on the plot. Calculate and report the MSE of the test set (on the scale of `logprice`).
 
@@ -495,7 +499,9 @@ In order to interpret this *ensemble method* we can make a variable importance p
 varImpPlot(random_forest)
 ```
 
-We can see that `yy` is decidedly best at decreasing the total node impurity, while `clarity` and `color` are best when using the alternative random out-of-bag importance method. There is no overlap between the 2 best covariates in each method.
+The two variable importance metrics (percentage increase in MSE and increase in node purity) give quite different results.
+This is often more common for models with categorical covariates with many levels.
+Not much can be said, as they don't share any opinion of which variables are the most important.
 
 We can now calculate the MSE for the test set on the scale of `logprice`.
 
@@ -505,12 +511,10 @@ random_forest_test_mse <- mean((random_forest_predictions - dtest$logprice)^2)
 print(random_forest_test_mse)
 ```
 
-We have a test MSE of $\approx 2.36 \cdot 10^{-3}$.
+We have a test MSE of $\approx 2.81 \cdot 10^{-3}$.
 
 
 **Q20:** Finally, compare the results from c (subset selection), d (lasso), e (tree) and f (random forest): Which method has given the best performance on the test set and which method has given you the best insight into the relationship between the price and the covariates?
-
-Let $\mat{X}$
 
 We can now compare the test MSE scores of the four previous models.
 
@@ -526,7 +530,7 @@ t(test_mse) %>% kable(col.names = c("Test MSE"))
 
 We can see that the random forest has performed the best on the test set.
 The random forest is difficult to interpret though, especially since the two importance plots do not coincide.
-The tree model is much simpler to interpret, it condenses all the information down to just two covariates, `xx` and `yy`, making it easy to print out on a piece of paper and taking with you to the Jeweler.
+The tree model is much simpler to interpret, it condenses all the information down to just two covariates, `xx` and `yy`, making it easy to print out on a piece of paper and taking it with you to the jeweler.
 
 
 # Problem 2: Unsupervised learning [3 points]
@@ -541,9 +545,9 @@ These new variables, $\mat{W}_m$, are called *principal components* and the prob
   \label{eq:decomposition}
   &\mat{W}_m
   =
-  \hat{\mat{R}} \mat{\phi}_m
+  \mat{Z} \mat{\phi}_m
   =
-  \sum_{j = 1}^p \phi_{jm} \hat{\mat R}_j,
+  \sum_{j = 1}^p \phi_{mj} \text{Col}_j(\mat{Z}),
     & \forall m: ||\mat{\phi}_{m}||_{2} &= 1 \nonumber \\
   %
   &\mathrm{Var}(\mat{W}_i) \geq \mathrm{Var}(\mat{W}_{j})
@@ -565,6 +569,7 @@ $$
 \frac{1}{n-1} \sum_{i=1}^n ({\mat{Z}}_i - \bar{\mat{Z}})({\mat{Z}}_i - \bar{\mat{Z}})^T.
 $$
 
+In this case $\bar{Z} = 0$, since we have centered the design matrix.
 We know that $\text{rank}(\hat{\mat{R}}) = \text{min}(p,~n - 1)$, which we will denote as $r$.
 Since $\hat{\mat{R}}$ is a symmetric and real, it is guaranteed to have an eigendecomposition.
 We can therefore diagonalize $\hat{\mat{R}}$ as
@@ -574,11 +579,11 @@ $$
 $$
 
 where $\mat{\Lambda} = \text{diag}(\lambda_1, ..., \lambda_r, 0, ..., 0) \in \mathbb{R}^{p \times p}$ is the diagonal eigenvalue matrix sorted in \textit{decreasing} order and $\mat{V} = [\vec{v}_1, ..., \vec{v}_p]$ is a matrix which columns consists of the respective \textit{eigenvectors} of $\hat{\mat R}$.
-It can be shown that $\mat{\phi} = [\phi_1, ..., \phi_p]^T = \mat{V}$ solves equation \eqref{eq:decomposition}.
+It can be shown that $\mat{\phi} = [\phi_1~...~\phi_p] = \mat{V}$ solves equation \eqref{eq:decomposition}.
 
 The *principal component scores* are the new values we attain in this transformed space.
 The transformation is given as $\mat{Z} \mat{\phi} = \mat{Z} \mat{V} \in \mathbb{R}^{p \times p}$, where only the $r$ first columns are nonzero.
-We therefore end up in practice with $r$ principal component scores for each of the original observations.
+We therefore end up in practice with $r$ nonzero principal component scores for each of the original observations.
 
 **Q22:** Explain what is given in the plot with title "First eigenvector". Why are there only $n=64$ eigenvectors and $n=64$ principal component scores?
 
@@ -604,7 +609,7 @@ plot(1:dim(X)[2], pca$rotation[,1], type="l", xlab="genes", ylab="weight")
 ```
 
 Figure \ref{fig:eigenvector} shows the values of of the first eigenvector of $\hat{\mat{R}}$.
-With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\mat{Z}$ in order to get the first principal component, which explains the most variance of all the principal components.
+With other words, it shows the entries of $\phi_1$, how to linearly combine the columns of $\mat{Z}$ in order to get the first principal component score, which explains the most variance of all the principal components.
 
 For our dataset, we have $r = \text{min}(p,~n - 1) = \text{min}(6830,~64 - 1) = 63$.
 There should therefore be $n = 63$ eigenvectors, and $n = 63$ principal component scores for each observation.
@@ -679,29 +684,22 @@ plot_pca <- function(first, second) {
 plot_pca(1, 2)
 ```
 
-We can see in \ref{fig:pc1vs2} the first principal component scores plotted against the second.
-`MELANOMA` cancer cells clustered away from the other cancer tumors with respect to the `PC2`-axis.
-`LEUKEMIA`, on the other hand, is separated away from most of the others along the `PC1`-axis.
-The `K562`, which are known as Leukemia cells, are clustered in the vicinity of `COLON` and `LEUKEMIA` which may imply a sort of similarity between these cell types.
-The same can be said of `MCF7`, which are known to be breast cancer cells.
-The `UNKNOWN` sample seems to be clustered close to `PROSTATE` and `NSCLC`/`OVARIAN` (unsure about the last one, because the colors are so similar). Perhaps `UNKNOWN` is an `NSCLC` sample?
+`MELANOMA`, `LEUKEMIA`, and `COLON` are the cancer tumor cells that portrays the greatest degree of clustering.
+The `K562{A,B}` cells, which are known to be leukemia cells, are located in the vicinity of the `LEUKEMIA` cluster, which makes sense.
+The `MCF7{A,D}`, which are known to be breast cancer cells, are located in the `COLON` cluster.
+Perhaps these cancer types are similar in some way?
+The `UNKNOWN` sample seems to be clustered close to `PROSTATE`, `NSCLC`, and `OVARIAN`.
+Perhaps `UNKNOWN` is an `NSCLC` sample, because there are most `NSCLC` samples in this region?
 
-We will now plot `PC3` against `PC4`.
+Below we have plotted the first and third principal components against each other (figure \ref{fig:pca13}), as well as the first and fourth (figure \ref{fig:pca14}). Similar trends are still noticeable for `K562A-repro` and `K562B-repro`, and the `UNKOWN` sample. For `MCF7A-repro` and `MCF7D-repro` these two plots show that their association with the `COLON`-cluster is not as strong as we saw in the plot of the first two PC's.
 
-```{r}
-plot_pca(3, 4)
+```{r, fig.cap = "\\label{fig:pca13}First PCA plotted against third PCA."}
+plot_pca(1, 3)
 ```
 
-Here we see less distinct clusters. `LEUKEMIA` and `COLOR` are somewhat separated from the rest. The `UNKNOWN` sample is close to `CNS`, amongst others. Most of the points are placed close to the line $\texttt{PC1} = \texttt{PC2}$.
-
-An lastly, we plot `PC63` against `PC64`.
-
-```{r}
-plot_pca(63, 64)
+```{r, fig.cap = "\\label{fig:pca14}First PCA plotted against fourth PCA."}
+plot_pca(1, 4)
 ```
-
-Here it becomes really apparent that $\mat{W}_{64} \in \text{Null}(Z)$ as all the observations are placed along the line $\texttt{PC64} = 0$ within numerical error.
-
 
 **Q25:**: Explain what it means to use Euclidean distance and average linkage for hierarchical clustering. 
 
@@ -712,13 +710,13 @@ $$
 W(C_k) = \frac{1}{|C_k|} \sum_{i, i' \in C_k} \sum_{j = 1}^p (x_{ij} - x_{i'j})^2,
 $$
 
-where $|C_k|$ is the cardinality of the cluster set.
+where $|C_k|$ is the cardinality of the cluster index set.
 Thus we want to find a cluster superset $C = \{C_1, ..., C_k\}$ which minimizes $\sum_{k = 1}^K W(C_k)$.
 Several algorithms exists for finding such cluster sets, one of which is the *hierarchical clustering algorithm*.
 The algorithm goes as follows:
 
 \begin{enumerate}
-  \item Start with all $n$ observations, i.e. the bottom of the \textit{dendogram} (see next task). Consider each observation to be its own cluster.
+  \item Start with all $n$ observations, i.e$.$ the bottom of the \textit{dendogram} (see next task). Consider each observation to be its own cluster.
   \item \texttt{while number of clusters} $> 1$:
   \begin{enumerate}
     \item Fuse the two clusters that are the most similar to each other.
@@ -728,11 +726,11 @@ The algorithm goes as follows:
 
 A question remains to be answered; how to define *similarity* between clusters?
 Consider two clusters consisting of a single observation each, $\vec{x}_1$ and $\vec{x}_2$.
-We can use the *euclidean distance* $||\vec{x}_1 - \vec{x}_2||_2$ as a similarity measure amongst others.
+We can use the *euclidean distance* $||\vec{x}_1 - \vec{x}_2||_2$ as a similarity measure.
 
 But how do we measure the similarity between two clusters with cardinalities that are not equal to $1$?
-We need to generalize the concept of similarity to groups of observations.
-This is problem called *linkage*.
+We need to generalize the concept of similarity to *groups* of observations.
+This is called *linkage*.
 There are no straight forward answers here, but one proposal solution is to use *mean inter-cluster dissimilarity*, aka. "average linking".
 Define the average distance measure $D_a$ between two clusters $C_1$ and $C_2$ as
 
@@ -740,7 +738,7 @@ $$
 D_{a}(C_1, C_2)
 =
   \frac{1}{|C_1| \cdot |C_2|}
-  \sum_{x_i, x_j \in C_1 \times C_2} ||x_i - x_j||_2,
+  \sum_{(x_i, x_j) \in C_1 \times C_2} ||\vec{x}_i - \vec{x}_j||_2,
 $$
 
 where $C_1 \times C_2$ is the Cartesian product between the two cluster sets.
@@ -755,12 +753,10 @@ plot(hc_model, cex = 0.45)
 ```
 
 The two `K562` cells are first clustered together, and afterwards with all the other `LEUKEMIA` samples. This is what we would expect, as they should be similar.
-The `MCF7` cells, which are known to be breast cancer cells, are also clustered with `BREAST` cells, which is also expected.
+The `MCF7` cells, which are known to be breast cancer cells, are also clustered with `BREAST` cells, which is also expected from what we know *a priori*.
 
-With other words, cancerous cells show a degree of similarity to the surrounding cells in the body.
-
-Lastly, the `UNKNOWN` cell is considered to be relatively close to an `OVARIAN` sample.
-Perhaps this cell sample is ovarian, possibly cancerous?
+Lastly, the `UNKNOWN` cell is considered to be relatively similar to an `OVARIAN` sample.
+Perhaps this cell sample is ovarian cancer?
 
 **Q27:**: Study the R-code and plot below. Here we have performed hierarchical clustering based on the first 64 principal component instead of the gene expression data in `Z`. What is the difference between using all the gene expression data and using the first 64 principal components in the clustering? We have plotted the dendrogram together with a heatmap of the data. Explain what is shown in the heatmap. What is given on the horizontal axis, vertical axis, value in the pixel grid?
 
@@ -780,7 +776,7 @@ $$
   \sqrt{ \sum_{j = 1}^{r} \left(w_{1j} - w_{2j}\right)^2 }
 $$
 
-The $64^{\text{th}}$ principal component score will always be $\simeq 0$, so it will not contribute to the distance.
+The $64^{\text{th}}$ principal component score will always be $\approx 0$, so it will not contribute to the distance.
 Which different does this make?
 Observe the following
 
@@ -791,19 +787,38 @@ Observe the following
   =
   || (\vec{z}_1 - \vec{z}_2)^T \mat{V} ||_2 \\
   %
-  \leq
-  || \vec{z}_1 - \vec{z}_2 ||_2 ||\mat{V}||_2
+  =
+  \left[
+    \left(\vec{z}_1 - \vec{z}_2 \right)^T \mat{V}
+    \left( \left(\vec{z}_1 - \vec{z}_2 \right)^T \mat{V} \right)^T
+  \right]^{1/2} \\
+  =
+  \left[
+    \left(\vec{z}_1 - \vec{z}_2 \right)^T \mat{V}
+    \mat{V}^T \left(\vec{z}_1 - \vec{z}_2 \right)
+  \right]^{1/2} \\
+  \underset{(a)}{=}
+  \left[
+    \left(\vec{z}_1 - \vec{z}_2 \right)^T
+    \left(\vec{z}_1 - \vec{z}_2 \right)
+  \right]^{1/2} \\
   =
   || \vec{z}_1 - \vec{z}_2 ||_2
 \end{gather*}
 
-Here we have used that the columns of the eigenvector matrix $\mat{V}$ are *orthonormal* which results in $||\mat{V}||_2 = 1$.
-We can see that the distances have been contracted in the principal component space.
+In $(a)$ we have used the fact that $\mat{V}$ is a unitary matrix, such that $\mat{V} \mat{V}^T = I$.
 
-Why is this instructive?
-Consider a data set with two covariates, $x_1$ and $x_2$, where the two covariates are almost *perfectly* correlated, let's say $x_{i2} = x_{i1} + \epsilon_i$.
-The original distance measure between $x_1 = (1, 1)$ and $x_2 = (2, 2)$ would become $\sqrt{2}$, while the two respective principal components would have a distance of $\approx 1$.
-The clustering of the principal components therefore accounts for correlations which may contribute to overestimations of the dissimilarity between observations!
+We can see that the distances have been preserved in the principal component space.
+This can be confirmed numerically by calculating the largest percentage difference in the respective euclidean distances:
+
+```{r}
+max_percentage_difference <- max(100 * (dist(pca$x) - dist(Z)) / dist(Z))
+print(max_percentage_difference)
+```
+
+Only at most a $3.5 \cdot 10^{-13}$ percent difference between the two spaces, which can be attributed to numerical errors.
+So in conclusion, doing clustering in the PC-space makes absolutely no difference, besides possible different numerical costs.
+It may also help with visualization, as we will now show.
 
 We now plot the principal component scores as a heatmap.
 
@@ -862,6 +877,7 @@ ctest$diabetes %<>% recode("0" = "healthy", "1" = "diabetes")
 Otherwise, we can see that one third of the observations have `diabetes = 1`.
 Also, the median number of pregnancies is $2$ and the average is $3.437$, so we have a positive skew in pregnancies.
 The `age` column spans from $21$ to $70$, which is good, since most age segments are represented.
+The dataset is not standardized in any way.
 Lastly, the average and median `bmi` is $\approx 33$, which is considered to be obese, which makes sense in a sample set where $33\%$ of the observations have diabetes.
 
 ### `ggpairs()`
@@ -899,12 +915,55 @@ ctrain %>%
   )
 ```
 
-What is interesting here is the fact that $\text{Cor}(\texttt{age}, \texttt{npreg})$ and $\text{Cor}(\texttt{skin}, \texttt{bmi})$ are the most correlated amongst the covariates, with $\text{Cor}(\texttt{age}, \texttt{bp})$ following somewhat behind.
+What is interesting here is the fact that $\text{Cor}(\texttt{age}, \texttt{npreg})$ and $\text{Cor}(\texttt{skin}, \texttt{bmi})$ are the greatest amongst the correlations, with $\text{Cor}(\texttt{age}, \texttt{bp})$ following somewhat behind.
+Age being correlated with number of pregnancies makes sense.
+Skin thickness is highly correlated with obesity, which BMI is intended to measure, it therefore makes sense that also these are correlated.
 
 
 **Q29:** Use different methods to analyse the data. In particular use 
 
 * one method from Module 4: Classification
+
+We can choose between logistic regression, LDA, or QDA. The two latter methods assumes that the class-specific distributions of the covariates are approximately Gaussian. The boxplots and histograms in the `ggpairs`-plot show us that this assumption does not hold. We will therefore analyze the data using logistic regression.
+
+The logistic regression method comes from the diagnostic paradigm of classification. This paradigm consists of methods where the goal is to estimate the posterior distribution $P(Y = k| X = x)$ for each class $k \in C$, where $C$ is the set of classes the response $Y$ can belong to. The diabetes classification is a two-class problem, $C = \{0,1\}$, and we write $P(Y_i = 1 | {\bf X} = {\bf x_i}) = p({\bf x_i})$ for brevity. Since we are modelling probabilities we need $p({\bf x_i}) \in [0,1]$. The most common function form used for achieving this is the sigmoid function $\sigma(x) = \frac{e^x}{1+e^x}$. Using this the logistic regression model becomes
+
+\begin{equation*}
+  p(\vec{x}_i)
+  =
+  \frac{
+    \mathrm{exp}\left\{\vec{x}_i^T \vec{\beta}\right\}
+  }{
+    1 + \mathrm{exp}\left\{\vec{x}_i^T \vec{\beta}\right\}
+  } 
+  =
+  \frac{
+    \mathrm{exp}\left\{
+      \beta_0 + \beta_1 x_{i1} + ... + \beta_p x_{ip}
+    \right\}
+  }{
+    1 + \mathrm{exp}\left\{
+      \beta_0 + \beta_1 x_{i1} + ... + \beta_p x_{ip}
+    \right\}
+  } 
+  \in
+  [0, 1]
+\end{equation*}
+
+
+With $P(Y_i = 0 | {\bf X} = {\bf x_i}) = 1 - p({\bf x_i})$. The coefficients ${\bf \beta}$ are now estimated using MLE, where the coefficients that maximizes the likelihood function
+
+\begin{equation*}
+  \ell(\vec{\beta}; \vec{x}, \vec{y})
+  =
+  \prod \limits_{i = 1}^{n}
+  p\left(x_i \mid \vec{\beta}\right)^{y_i}
+  (1 - p\left(x_i \mid \vec{\beta})\right)^{1 - y_i}
+\end{equation*}
+
+are chosen.
+
+As in linear regression, we need to decide on the number of parameters to include in our model. One way to decide on which subset of the $p$ available predictors to include is best subset selection. This is performed below with $\text{AIC}$ as selection criterion.
 
 ```{r}
 library(magrittr)  # For use_series()
@@ -930,7 +989,27 @@ logistic_model <- bestglm(
     IC = "AIC"
   ) %>%
   use_series(BestModel)
+```
 
+To interpret the fitted model it is useful to define the notion of odds. This is just the ratio of the estimated probabilities of the two classes. After taking the logarithm of the odds, and doing some algebraic manipulation we get that
+
+\begin{equation*}
+  \log \left( 
+  \frac{\hat{p}(x_i)}{1 - \hat{p}(x_i)} 
+  \right)
+  =
+  \vec{x}_i^T \hat{\vec{\beta}}
+\end{equation*}
+
+which shows that the logodds is linear in the predictors. This means that by increasing one of the predictors $x_{ij}$ by one unit, while holding everything else constant, the predicted logodds will increase by $\hat{\beta}_j$ units. Equivalently, the odds will increase by a factor of $e^{\hat{\beta}_j}$.
+
+```{r}
+summary(logistic_model)
+```
+
+Under the Bayes classifier an observation $\vec{x}_i$ is assigned the class for which the predicted posterior is greater than 0.5. Using this, we can evaluate the performance of the model on the test set. The results are shown below, along with a plot of the $\text{ROC}$-curve and the corresponding $\text{AUC}$.
+
+```{r}
 # Create diabetes predictions
 logistic_predictions <- predict(logistic_model, ctest, type = "response") %>%
   map_lgl(~ .x > 0.5) %>%
@@ -945,6 +1024,7 @@ logistic_confmat <- confusionMatrix(
 print(logistic_confmat)
 ```
 
+The overall misclassification rate of the model is $\approx 20.3\%$.
 
 ## Module 8: Trees (and forests)
 
@@ -995,9 +1075,9 @@ We can also specify the grid on which to search for the best tuning parameters.
 We will choose:
 
 \begin{align*}
-  \vec{B} &= [10, 20, 30, 40, 50] \\
+  \vec{B} &= [10, 20, 30, 50, 100] \\
   \vec{d} &= [1, 3, 5, 10] \\
-  \vec{\lambda} &= [0.2, 0.15, 0.1, 0.05, 0.01] \\
+  \vec{\lambda} &= [0.2, 0.15, 0.1, 0.05, 0.01, 0.001] \\
   \vec{m} &= [10, 15, 20, 30]
 \end{align*}
 
@@ -1006,9 +1086,9 @@ This can also be specified in `caret` with the function `expand.grid()`:
 
 ```{r}
 tune_grid <- expand.grid(
- n.trees = c(10, 20, 30, 40, 50),
+ n.trees = c(10, 20, 30, 50, 100),
  interaction.depth = c(1, 3, 5, 10),
- shrinkage = c(0.2, 0.15, 0.1, 0.05, 0.01),
+ shrinkage = c(0.2, 0.15, 0.1, 0.05, 0.01, 0.001),
  n.minobsinnode = c(10, 15, 20, 30)
 )
 ```
@@ -1019,6 +1099,7 @@ We can now instruct caret to train a boosted tree model with a search upon this 
 The model with the best cross-validated accuracy is chosen.
 
 ```{r, cache = TRUE}
+set.seed(0)
 boost_model <- caret::train(
   form = diabetes ~ .,
   data = ctrain,
@@ -1040,14 +1121,13 @@ plot(
 )
 ```
 
-Here it becomes obvious that $\lambda = 0.01$ is the worst of them all.
 We can get the specific point on the grid which is considered optimal:
 
 ```{r}
 boost_model$bestTune
 ```
 
-$B = 40$, $d = 5$, $\lambda = 0.1$, and $m = 15$ performs best, so this is what is chosen in the final model.
+$B = 30$, $d = 3$, $\lambda = 0.1$, and $m = 15$ performs best, so this is what is chosen in the final model.
 We can create a variable importance plot of the final model
 
 ```{r}
@@ -1389,3 +1469,39 @@ For each method you
 
 **Q30:** Conclude with choosing a winning method, and explain why you mean that this is the winning method.
 
+Let us gather all the calculated test accuracies, sensitivities, and specificities of our four models.
+
+```{r}
+models <- list(
+  "logistic" = logistic_confmat,
+  "boost" = boost_confmat,
+  "svm" = svm_confmat,
+  "nnet" = nn_confmat
+)
+
+comparison <- tibble(
+  method = character(),
+  accuracy = double(),
+  sensitivity = double(),
+  specificity = double()
+)
+
+for (model in names(models)) {
+  comparison %<>% add_row(
+    method = model,
+    accuracy = models[[model]]$overall["Accuracy"],
+    sensitivity = models[[model]]$byClass["Sensitivity"],
+    specificity = models[[model]]$byClass["Specificity"]
+  )
+}
+
+comparison %>% kable(format = "pandoc", digits = 3)
+```
+
+We can now see that the logistic, boost, and svm model have comparable accuracies of $\approx 79.7\%$, but with different sensitivities and specificities.
+Which model we choose as the "best" model depends on multiple factors and which objectives we want to meet.
+For instance, if early detection of diabetes is paramount, we would prefer high sensitivity at the cost of lower specificity.
+With this in mind, the `svm` model might be preferable.
+
+But we choose the logistic regression model to be the "winning model" as it allows for easier inference.
+The model can be used to explain which factors that are correlated to diabetes, and you can say things such as "the odds of getting diabetes is expected to increase $X\%$ for every additional `BMI` point, everything else being equal".
