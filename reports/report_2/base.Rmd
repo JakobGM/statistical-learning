@@ -931,6 +931,8 @@ We will therefore analyze the data using logistic regression.
 
 The logistic regression method comes from the diagnostic paradigm of classification.
 This paradigm consists of methods where the goal is to estimate the posterior distribution $P(Y = k| X = x)$ for each class $k \in C$, where $C$ is the set of classes the response $Y$ can belong to.
+Logistic regression requires independence between observational pairs $(Y_i, \vec{x}_i)$.
+
 The diabetes classification is a two-class problem, $C = \{0,1\}$, and we write $P(Y_i = 1 | {\bf X} = {\bf x_i}) = p({\bf x_i})$ for brevity.
 Since we are modelling probabilities we need $p({\bf x_i}) \in [0,1]$.
 The most common function form used for achieving this is the sigmoid function $\sigma(x) = \frac{e^x}{1+e^x}$. Using this the logistic regression model becomes
@@ -976,13 +978,16 @@ With $P(Y_i = 0 | {\bf X} = {\bf x_i}) = 1 - p({\bf x_i})$. The coefficients ${\
 
 are chosen.
 
-As in linear regression, we need to decide on the number of parameters to include in our model. One way to decide on which subset of the $p$ available predictors to include is best subset selection. This is performed below with $\text{AIC}$ as selection criterion.
+As in linear regression, we need to decide on the number of parameters to include in our model.
+One way to decide on which subset of the $p$ available predictors to include is best subset selection.
+This is performed exhaustively below with $\text{AIC}$ as selection criterion.
 
 ```{r}
 library(magrittr)  # For use_series()
 library(caret)  # For confusionMatrix()
 library(e1071)  # For ConfusionMatrix()
 library(purrr)  # For map_dbl()
+set.seed(0)
 
 # Create bestglm-compliant dataframe
 Xy <- as.data.frame(
@@ -999,7 +1004,8 @@ Xy <- as.data.frame(
 logistic_model <- bestglm(
     Xy = Xy,
     family = binomial,
-    IC = "AIC"
+    IC = "AIC",
+    method = "exhaustive"
   ) %>%
   use_series(BestModel)
 ```
@@ -1019,10 +1025,13 @@ To interpret the fitted model it is useful to define the notion of odds. This is
   \frac{\hat{p}(x_i)}{1 - \hat{p}(x_i)} 
   \right)
   =
-  \vec{x}_i^T \hat{\vec{\beta}}
+  \vec{x}_i^T \hat{\vec{\beta}},
 \end{equation*}
 
-which shows that the logodds is linear in the predictors. This means that by increasing one of the predictors $x_{ij}$ by one unit, while holding everything else constant, the predicted logodds will increase by $\hat{\beta}_j$ units. Equivalently, the odds will increase by a factor of $e^{\hat{\beta}_j}$.
+which shows that the log odds is linear in the predictors.
+This means that by increasing one of the predictors $x_{ij}$ by one unit, while holding everything else constant, the predicted log odds will increase by $\hat{\beta}_j$ units.
+Equivalently, the odds will increase by a factor of $e^{\hat{\beta}_j}$.
+The linear relation between our independent variables and tho log odds is one of our model assumptions.
 
 ```{r}
 coefficients(logistic_model) %>%
