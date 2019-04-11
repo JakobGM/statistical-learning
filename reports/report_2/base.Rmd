@@ -1162,7 +1162,7 @@ We can get the specific point on the grid which is considered optimal:
 boost_model$bestTune
 ```
 
-$B = 30$, $d = 3$, $\lambda = 0.1$, and $m = 15$ performs best, so this is what is chosen in the final model.
+$B = 10$, $d = 5$, $\lambda = 0.1$, and $m = 15$ performs best, so this is what is chosen in the final model.
 We can create a variable importance plot of the final model
 
 ```{r}
@@ -1193,8 +1193,8 @@ boost_confmat <- confusionMatrix(
 print(boost_confmat)
 ```
 
-The result here is an overall accuracy of $\approx 78\%$, i.e. a misclassification rate of $12\%$.
-Interestingly, we have a $\approx 88\%$ sensitivity, so the model is able to correctly predict diabetes for nine out of ten diabetes sufferers.
+The result here is an overall accuracy of $\approx 78.5\%$, i.e. a misclassification rate of $11.5\%$.
+Interestingly, we have a $\approx 89\%$ sensitivity, so the model is able to correctly predict diabetes for nine out of ten diabetes sufferers.
 
 Finally, we can plot the ROC-curve for the model and report the AUC.
 
@@ -1211,7 +1211,7 @@ roc(
 ) 
 ```
 
-Here we see that the ROC curve is far from being diagonal and $\text{AUC} = 0.84 > 0.5$, which a random guessing model would have.
+Here we see that the ROC curve is far from being diagonal and $\text{AUC} \approx 0.84 > 0.5$, which a random guessing model would have.
 It can therefore be considered to have explaining power.
 
 ## Module 9: Support vector machines
@@ -1541,7 +1541,7 @@ for (model in names(models)) {
 comparison %>% kable(format = "pandoc", digits = 3)
 ```
 
-We can now see that the logistic, boost, and svm model have comparable accuracies of $\approx 79.7\%$, but with different sensitivities and specificities.
+We can now see that the logistic and svm models have comparable accuracies of $\approx 79.7\%$, but with different sensitivities and specificities.
 Which model we choose as the "best" model depends on multiple factors and which objectives we want to meet.
 For instance, if early detection of diabetes is paramount, we would prefer high sensitivity at the cost of lower specificity.
 With this in mind, the `svm` model might be preferable.
