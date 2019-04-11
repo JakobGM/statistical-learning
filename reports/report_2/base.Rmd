@@ -26,6 +26,7 @@ knitr::opts_chunk$set(error = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(results = "hold")
+knitr::opts_chunk$set(cache = TRUE)
 ```
 
 # Problem 1: Regression [6 points]
@@ -1211,7 +1212,7 @@ roc(
 ```
 
 Here we see that the ROC curve is far from being diagonal and $\text{AUC} = 0.84 > 0.5$, which a random guessing model would have.
-It can be considered to have explaining power.
+It can therefore be considered to have explaining power.
 
 ## Module 9: Support vector machines
 
@@ -1336,6 +1337,7 @@ svm_confmat
 ```
 
 The resulting accuracy is $\approx 79.74\%$, with a sensitivity of approximately $91\%$ and specificity of $57\%$.
+We therefore have a misclassification rate of $\approx 20\%$.
 The model is therefore pretty good at predicting diabetes for diabetes patients but it has a relatively high false positive rate.
 If the downside of not detecting diabetes is much worse than the downside of predicting diabetes for a patient that is really healthy, this could be considered a good model.
 If the opposite is the case, then it can be considered a bad model.
@@ -1440,6 +1442,8 @@ In neural networks $\lambda$ is known as *weight decay*, and this is the second 
 
 ### Parameter selection
 
+We will perform a grid search over the tuning parameter space $\vec{w} \times \vec{\lambda} = [1, 2, ..., 11] \times [0, 0.1, ..., 0.5]$ with the same method as explained before.
+
 ```{r}
 nn_tune_grid <- expand.grid(
   size = seq(from = 1, to = 11, by = 1),
@@ -1447,7 +1451,8 @@ nn_tune_grid <- expand.grid(
 ) 
 ```
 
-[center](https://stackoverflow.com/a/4674770/11009311)
+We can now perform this grid search and retrieve the best model.
+The covariates need not really be centered and scaled, but it often helps with the convergence rate of the optimization algorithm, as explained in [this StackOverflow answer](https://stackoverflow.com/a/4674770/11009311).
 
 ```{r, cache = TRUE}
 set.seed(42)
@@ -1463,25 +1468,35 @@ nn_model <- caret::train(
 )
 ```
 
+The result of the grid search algorithm can be plotted.
+
 ```{r, fig.align = "center"}
 plot(nn_model)
 ```
+
+By inspection we see that 6 hidden nodes with a weight decay of 0.2 is optimal, which can be confirmed:
 
 ```{r}
 nn_model$bestTune
 ```
 
+The resulting weights of each edge can be printed:
+
 ```{r}
 summary(nn_model$finalModel)
 ```
 
-[plot method](https://gist.github.com/Peque/41a9e20d6687f2f3108d)
+This is hard to parse, so we will use a plot method implemented by the GitHub user \texttt{Peque} [avaliable here](https://gist.github.com/Peque/41a9e20d6687f2f3108d) in order to visualize the neural network:
 
 ```{r}
 library(devtools)
 source_url('https://gist.githubusercontent.com/Peque/41a9e20d6687f2f3108d/raw/85e14f3a292e126f1454864427e3a189c2fe33f3/nnet_plot_update.r')
 plot.nnet(nn_model$finalModel)
 ```
+
+The darker the edges, the greater the weights.
+
+We can now test the neural net on our testing data set:
 
 ```{r}
 nn_probabilities <- predict(nn_model, ctest, type = "prob") 
@@ -1493,13 +1508,7 @@ nn_confmat <- confusionMatrix(
 nn_confmat
 ```
 
-
-For each method you 
-
-* clearly write out the model and model assumptions for the method
-* explain how any tuning parameters are chosen or model selection is performed
-* report (any) insight into the interpretation of the fitted model
-* evaluate the model using the test data, and report misclassification rate (cut-off 0.5 on probability) and plot ROC-curves and give the AUC (for method where class probabilities are given).
+We have a misclassification rate of $\approx 23.3\%$.
 
 **Q30:** Conclude with choosing a winning method, and explain why you mean that this is the winning method.
 
