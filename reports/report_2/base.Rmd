@@ -1,6 +1,6 @@
 ---
 subtitle: "TMA4268 Statistical Learning V2019"
-title: "Compulsory exercise 2: Group XYZ"
+title: "Compulsory exercise 2: Group 64"
 author: "Martinussen, Jakob Gerhard & Wilson, Alm"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
