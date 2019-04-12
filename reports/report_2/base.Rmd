@@ -526,7 +526,7 @@ test_mse <- tibble(
   tree = tree_test_mse,
   random_forest = random_forest_test_mse
 )
-t(test_mse) %>% kable(col.names = c("Test MSE"))
+t(test_mse) %>% kable(col.names = c("Test MSE"), format = "pandoc")
 ```
 
 We can see that the random forest has performed the best on the test set.
