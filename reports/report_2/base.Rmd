@@ -1415,7 +1415,7 @@ But the \texttt{R}-package `nnet` only support single-hidden-layer networks, so 
 
 Now, how do we decide the weights of the edges, $\vec{\theta} := [\alpha\text{'s}, \beta\text{'s}]$?
 We want to maximize the log-likelihood of the statistical model.
-We define an objective function, $J(\vec{\theta})$, called *binomial cross-entropy loss*, which is the negative of the binomial log likelihood in scaled form
+We define an objective function, $J(\vec{\theta})$, a scaled version of the *binomial cross-entropy loss*, which is the negative of the binomial log likelihood in scaled form
 
 \begin{equation*}
   J(\vec{\theta})
